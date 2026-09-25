@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="google" content="notranslate">
+<script>
+  // Defined here (in <head>, before any <img> tags exist) so it's already available
+  // the instant a local photo fails to load — a script at the bottom of the page
+  // loads too late, since the browser starts fetching images as soon as it parses
+  // them and the error event can fire before that later script even runs.
+  window.__noirePhotoFallback = function(img){
+    // Chrome's "Save image as" on Pexels photos often saves an .avif file even
+    // though the URL looked like .jpeg, so that's tried first. '' (no dot at
+    // all) covers files that lost their extension during a manual rename while
+    // Windows Explorer had extensions hidden.
+    var exts = ['avif','AVIF','jpeg','jpg','JPG','JPEG','png','webp','PNG','WEBP',''];
+    var src = img.getAttribute('src') || '';
+    if (!/^pexels-photo-/.test(src)) return;
+    var tried = parseInt(img.dataset.fbTried || '0', 10) + 1;
+    if (tried > exts.length) return;
+    img.dataset.fbTried = String(tried);
+    var base = img.dataset.fbBase || src.replace(/\.[a-zA-Z0-9]+$/, '');
+    img.dataset.fbBase = base;
+    img.src = exts[tried - 1] ? (base + '.' + exts[tried - 1]) : base;
+  };
+</script>
+<title>NOIRE — Specialty Coffee</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F1F1F'/%3E%3Ctext x='32' y='45' font-family='Arial, Helvetica, sans-serif' font-size='36' font-weight='900' fill='%23FFFDF8' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    /* light theme (default) — base tokens used everywhere EXCEPT the hero photo and the
+       dark catalog banner, which stay their own deliberately dark, hard-coded "accent zones" */
+    --bg:#FFFDF8;
+    --bg-2:#FBF3E3;
+    --panel:#F5F0E8;
+    --panel-2:#EFE6D4;
+    --panel-light:#FFFFFF;
+    --line: rgba(31,26,20,.13);
+    --ink:#1F1F1F;
+    --ink-soft:#4A3F35;
+    --ink-faint:#8A7B6A;
+    --gold:#4B3621;
+    --gold-soft:#C06014;
+    --cocoa:#8A5A32;
+    --caramel:#C4863A;
+    --rose:#B14C60;
+    --lavender:#7C6FA3;
+
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html{ scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior:smooth; }
+
+  /* optional dark variant, kept for a future theme toggle — not used by default anymore */
+  :root[data-theme="dark"]{
+    --bg:#18120C; --bg-2:#221A12; --panel:#251C14; --panel-2:#2C2117; --panel-light:#3A2C1D;
+    --line: rgba(243,236,226,.15);
+    --ink:#F3ECE2; --ink-soft:#C6B7A6; --ink-faint:#8C7C6C;
+    --gold:#C69A48; --gold-soft:#DDB870;
+    --cocoa:#A5764A; --caramel:#DCAA5B; --rose:#C86A7D; --lavender:#AFA3CB;
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Inter", ui-sans-serif, system-ui, sans-serif;
+    font-weight:400;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  img{ max-width:100%; display:block; object-fit:cover; }
+  a{ color:inherit; }
+  .wrap{ max-width:1220px; margin:0 auto; padding:0 28px; }
+  @media (max-width:640px){ .wrap{ padding:0 20px; } }
+  ::selection{ background:var(--gold); color:#FFFDF8; }
+
+  h1,h2,h3{ margin:0; line-height:1; }
+  .display{ font-family:"Archivo Black", "Inter", sans-serif; text-transform:uppercase; letter-spacing:-0.01em; line-height:.98; }
+
+  .eyebrow{ font-size:13px; color:var(--ink-faint); margin:0 0 16px; display:flex; align-items:center; gap:10px; }
+  .eyebrow::before{ content:""; width:22px; height:1px; background:var(--gold); display:inline-block; }
+
+  /* Base button — used as-is only inside the hero, to keep it untouched */
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    border:1px solid var(--ink); background:transparent; color:var(--ink);
+    font-family:"Inter", sans-serif; font-size:14.5px; font-weight:600;
+    padding:16px 36px; border-radius:1px; cursor:pointer; text-decoration:none;
+    transition:background .25s ease, color .25s ease, border-color .25s ease;
+    white-space:nowrap; letter-spacing:.01em;
+  }
+  .btn:hover{ background:var(--ink); color:var(--bg); }
+  .btn.primary{ background:var(--gold); border-color:var(--gold); color:#FFFDF8; box-shadow:0 6px 18px -6px rgba(75,54,33,.55); }
+  .btn.primary:hover{ background:var(--gold-soft); border-color:var(--gold-soft); color:#FFFDF8; box-shadow:0 8px 22px -6px rgba(192,96,20,.6); }
+  .btn:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+
+  /* Softer pill buttons for every section other than the hero */
+  .btn-pill{ border-radius:999px !important; }
+
+  /* NAV */
+  header{
+    position:sticky; top:0; z-index:60;
+    padding-top: env(safe-area-inset-top, 0px);
+    background:color-mix(in srgb, var(--bg) 78%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  nav{ display:flex; align-items:center; justify-content:space-between; padding:18px 0; gap:20px; }
+  .navleft{ display:flex; align-items:center; gap:28px; }
+  .logo{ font-family:"Archivo Black", sans-serif; font-size:20px; letter-spacing:.04em; white-space:nowrap; }
+  .navlinks{ display:flex; gap:30px; list-style:none; margin:0; padding:0; font-size:14px; color:var(--ink-soft); }
+  .navlinks a{ text-decoration:none; }
+  .navlinks a:hover{ color:var(--ink); }
+  @media (max-width:860px){ .navlinks{ display:none; } }
+  .navright{ display:flex; align-items:center; gap:14px; }
+
+  .langswitch{ display:flex; align-items:center; border:1px solid var(--line); border-radius:20px; overflow:hidden; flex:none; }
+  .langswitch button{ appearance:none; border:none; background:transparent; color:var(--ink-faint); font-family:"Inter", sans-serif; font-size:12.5px; font-weight:600; letter-spacing:.03em; padding:8px 13px; cursor:pointer; transition:background .2s ease, color .2s ease; }
+  .langswitch button.active{ background:var(--gold); color:#FFFDF8; }
+  .langswitch button:not(.active):hover{ color:var(--ink); }
+  .langswitch button:focus-visible{ outline:2px solid var(--gold); outline-offset:-2px; }
+
+  .cart-btn{
+    position:relative; display:flex; align-items:center; justify-content:center;
+    width:40px; height:40px; border-radius:50%; border:1px solid var(--line);
+    background:transparent; cursor:pointer; color:var(--ink); flex:none;
+    transition:background .2s ease, border-color .2s ease;
+  }
+  .cart-btn:hover{ background:var(--panel); border-color:var(--gold); }
+  .cart-btn svg{ width:18px; height:18px; }
+  .cart-badge{
+    position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; border-radius:50%;
+    background:var(--gold); color:#FFFDF8; font-size:10.5px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; padding:0 4px;
+    opacity:0; transform:scale(.6); transition:opacity .2s ease, transform .2s ease;
+  }
+  .cart-badge.show{ opacity:1; transform:scale(1); }
+
+  section{ position:relative; }
+  .num-mark{ position:absolute; font-family:"Archivo Black", sans-serif; font-size:clamp(140px, 22vw, 320px); line-height:1; color:transparent; -webkit-text-stroke:1px var(--line); z-index:0; pointer-events:none; user-select:none; }
+
+  /* ============ HERO — untouched ============ */
+  .hero{ position:relative; min-height:100svh; display:flex; align-items:flex-end; overflow:hidden; border-bottom:1px solid var(--line); }
+  .hero-media{ position:absolute; inset:0; z-index:0; }
+  .hero-media img{ width:100%; height:100%; object-fit:cover; animation: kenburns 26s ease-in-out infinite alternate; filter:saturate(1.05) contrast(1.05); }
+  @keyframes kenburns{ from{ transform:scale(1) translate(0,0);} to{ transform:scale(1.12) translate(-1%,-2%);} }
+  .hero-scrim{ position:absolute; inset:0; z-index:1; background:
+      linear-gradient(180deg, rgba(10,7,5,.55) 0%, rgba(10,7,5,.35) 35%, rgba(10,7,5,.85) 100%),
+      linear-gradient(90deg, rgba(10,7,5,.75) 0%, rgba(10,7,5,.15) 55%); }
+  .grain{ position:absolute; inset:0; z-index:2; opacity:.5; mix-blend-mode:overlay; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E"); }
+  .hero-content{ position:relative; z-index:3; width:100%; padding:0 0 76px; }
+  /* the hero sits on a dark photo regardless of the site's light theme, so this tag keeps
+     its own fixed warm-gold color instead of inheriting the (now dark-brown) --gold-soft */
+  .hero-tag{ display:inline-flex; align-items:center; gap:10px; font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:#DDB870; margin-bottom:22px; opacity:0; animation: fadeUp .8s ease .1s forwards; }
+  .hero-tag i{ width:6px; height:6px; border-radius:50%; background:#DDB870; display:inline-block; }
+  .hero h1{ font-size:clamp(48px, 9vw, 118px); max-width:14ch; color:#F3ECE2; opacity:0; transform:translateY(18px); animation: fadeUp .9s cubic-bezier(.22,.8,.28,1) .22s forwards; }
+  .hero .lede{ margin-top:26px; font-size:17px; line-height:1.6; color:#B9AB9B; max-width:42ch; opacity:0; transform:translateY(18px); animation: fadeUp .9s cubic-bezier(.22,.8,.28,1) .4s forwards; }
+  .hero .ctarow{ margin-top:34px; display:flex; gap:14px; flex-wrap:wrap; opacity:0; transform:translateY(18px); animation: fadeUp .9s cubic-bezier(.22,.8,.28,1) .56s forwards; }
+  /* the hero sits on a dark photo regardless of the site's light theme, so its two buttons
+     keep their own fixed, high-contrast colors instead of inheriting the (now light) --gold */
+  .hero .btn{ color:#F3ECE2; border-color:rgba(243,236,226,.4); }
+  .hero .btn:hover{ background:#F3ECE2; color:#18120C; }
+  .hero .btn.primary{ background:#C69A48; border-color:#C69A48; color:#18120C; }
+  .hero .btn.primary:hover{ background:#DDB870; border-color:#DDB870; color:#18120C; }
+  @keyframes fadeUp{ to{ opacity:1; transform:translateY(0); } }
+  .scrollcue{ position:absolute; right:28px; bottom:28px; z-index:3; writing-mode:vertical-rl; font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:#7C6F62; display:flex; align-items:center; gap:10px; }
+  .scrollcue::after{ content:""; width:1px; height:46px; background:#7C6F62; display:block; }
+  @media (max-width:700px){ .scrollcue{ display:none; } }
+
+  /* floating "now roasting" spotlight — the one bold accent in the hero besides the photo itself */
+  .hero-spot-wrap{
+    position:absolute; top:128px; right:40px; z-index:3;
+    opacity:0; transform:translateY(14px);
+    animation: fadeUp .9s cubic-bezier(.22,.8,.28,1) .78s forwards;
+  }
+  @media (max-width:980px){ .hero-spot-wrap{ display:none; } }
+  .hero-spot{
+    display:block; width:224px; text-decoration:none; color:inherit;
+    background:color-mix(in srgb, #18120C 50%, transparent);
+    backdrop-filter:blur(14px);
+    border:1px solid rgba(243,236,226,.18);
+    border-radius:14px; padding:18px 20px;
+    animation: heroFloat 7s ease-in-out 2.4s infinite;
+    transition:border-color .25s ease, background .25s ease;
+  }
+  .hero-spot:hover{ border-color:rgba(221,184,112,.55); background:color-mix(in srgb, #18120C 62%, transparent); }
+  .hero-spot-label{ font-size:11.5px; color:#B9AB9B; margin-bottom:7px; }
+  .hero-spot-name{ font-family:"Fraunces", serif; font-style:italic; font-size:17px; color:#F3ECE2; margin-bottom:13px; line-height:1.3; }
+  .hero-spot-meta{ display:flex; align-items:center; gap:8px; font-size:12.5px; color:#DDB870; }
+  .hero-spot-dot{ width:7px; height:7px; border-radius:50%; background:#DDB870; display:inline-block; flex:none; }
+  @keyframes heroFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
+
+  @media (prefers-reduced-motion: reduce){
+    .hero-media img{ animation:none; }
+    .hero h1,.hero .lede,.hero .ctarow,.hero-tag,.hero-spot-wrap{ animation:none !important; opacity:1 !important; transform:none !important; }
+    .hero-spot{ animation:none !important; }
+  }
+  /* ============ /HERO ============ */
+
+  .section-pad{ padding:120px 0; }
+  @media (max-width:760px){ .section-pad{ padding:76px 0; } }
+  .section-head{ display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:56px; position:relative; z-index:1; }
+  .section-head h2{ font-size:clamp(30px,4.2vw,54px); max-width:16ch; }
+  .section-head p{ max-width:34ch; color:var(--ink-soft); font-size:15.5px; line-height:1.6; margin:0; }
+  @media (max-width:760px){ .section-head{ flex-direction:column; align-items:flex-start; } }
+
+  /* mosaic instead of four equal tiles — one feature card carries the weight,
+     a wide card anchors the bottom, the middle pair stays compact */
+  .taste-grid{ display:grid; grid-template-columns:1.3fr 1fr 1fr; grid-auto-rows:160px; gap:14px; position:relative; z-index:1; }
+  .taste-card:nth-child(1){ grid-column:1; grid-row:span 4; }
+  .taste-card:nth-child(2){ grid-column:2; grid-row:span 2; }
+  .taste-card:nth-child(3){ grid-column:3; grid-row:span 2; }
+  .taste-card:nth-child(4){ grid-column:2 / span 2; grid-row:span 2; }
+  @media (max-width:900px){
+    .taste-grid{ grid-template-columns:repeat(2,1fr); grid-auto-rows:180px; }
+    .taste-card:nth-child(1){ grid-column:1 / span 2; grid-row:span 2; }
+    .taste-card:nth-child(2){ grid-column:1; grid-row:span 2; }
+    .taste-card:nth-child(3){ grid-column:2; grid-row:span 2; }
+    .taste-card:nth-child(4){ grid-column:1 / span 2; grid-row:span 2; }
+  }
+  @media (max-width:560px){
+    .taste-grid{ grid-template-columns:1fr; grid-auto-rows:220px; }
+    .taste-card:nth-child(1), .taste-card:nth-child(2), .taste-card:nth-child(3), .taste-card:nth-child(4){ grid-column:1; grid-row:span 1; }
+  }
+  .taste-card{ background:var(--panel); border:1px solid var(--line); position:relative; overflow:hidden; border-radius:16px; transition:box-shadow .25s ease, transform .25s ease; }
+  .taste-card:hover{ box-shadow:0 14px 30px -10px rgba(31,26,20,.28); transform:translateY(-4px); }
+  .taste-card img{ width:100%; height:100%; object-fit:cover; transition:transform .6s cubic-bezier(.2,.7,.2,1); filter:saturate(.95) brightness(.82); }
+  .taste-card:hover img{ transform:scale(1.06); }
+  /* these cards sit on a photo + dark scrim so their text stays fixed light, regardless of theme */
+  .taste-overlay{ position:absolute; inset:0; background:linear-gradient(180deg, transparent 40%, rgba(15,10,6,.88) 100%); display:flex; flex-direction:column; justify-content:flex-end; padding:22px; color:#F3ECE2; }
+  .taste-card:nth-child(1) .taste-overlay{ padding:30px; }
+  .taste-swatch{ width:10px; height:10px; border-radius:50%; margin-bottom:12px; }
+  .taste-card h3{ font-size:19px; font-weight:600; font-family:"Inter"; text-transform:none; margin-bottom:6px; color:#F3ECE2; }
+  .taste-card:nth-child(1) h3{ font-size:25px; }
+  .taste-card .notes{ font-size:12.5px; color:#C6B7A6; }
+  .taste-blurb{ font-size:13.5px; line-height:1.55; color:#D8CBBC; max-width:30ch; margin:12px 0 0; }
+  .taste-intensity-row{ display:flex; align-items:center; gap:9px; margin-top:11px; }
+  .taste-intensity-label{ font-size:11px; color:#B9AB9B; }
+  .taste-intensity{ display:flex; gap:4px; }
+  .taste-intensity i{ width:6px; height:6px; border-radius:50%; background:rgba(243,236,226,.25); display:inline-block; }
+  .taste-intensity i.on{ background:#DDB870; }
+
+  /* ============ CATALOG BANNER (page 03) ============ */
+  .catalog-banner{
+    position:relative; z-index:1; border-radius:22px; overflow:hidden;
+    background:linear-gradient(120deg, #2C2015 0%, #3C2A18 55%, #55351A 100%);
+    display:grid; grid-template-columns:1.05fr .95fr; align-items:center; min-height:420px;
+  }
+  @media (max-width:860px){ .catalog-banner{ grid-template-columns:1fr; } }
+  .catalog-photo{ position:relative; height:100%; min-height:320px; clip-path: polygon(0 0, 92% 0, 78% 100%, 0% 100%); }
+  @media (max-width:860px){ .catalog-photo{ clip-path:none; min-height:220px; } }
+  .catalog-photo img{ width:100%; height:100%; object-fit:cover; position:absolute; inset:0; filter:saturate(1.05) brightness(.85); }
+  .catalog-copy{ padding:56px 56px 56px 20px; position:relative; z-index:1; }
+  @media (max-width:860px){ .catalog-copy{ padding:36px 26px 48px; } }
+  /* this banner stays a dark coffee-toned accent regardless of the site's light theme,
+     so its eyebrow and button keep fixed high-contrast colors, decoupled from --gold */
+  .catalog-copy .eyebrow{ color:#DDB870; }
+  .catalog-copy .eyebrow::before{ background:#DDB870; }
+  .catalog-copy h2{ font-size:clamp(30px,4.4vw,50px); max-width:11ch; margin-bottom:20px; text-transform:uppercase; color:#F7F1E7; }
+  .catalog-copy p{ font-size:15.5px; line-height:1.65; color:#D8C9B6; max-width:38ch; margin:0 0 30px; }
+  .catalog-copy .btn.primary{ background:#DDB870; border-color:#DDB870; color:#1F1500; }
+  .catalog-copy .btn.primary:hover{ background:#F0CB8C; border-color:#F0CB8C; color:#1F1500; }
+
+  .product-list{ margin-top:64px; display:flex; flex-direction:column; gap:30px; position:relative; z-index:1; }
+  .product{
+    display:grid; grid-template-columns: 190px 1fr auto; gap:34px; align-items:center;
+    padding:30px; border-radius:18px; background:var(--panel); border:1px solid var(--line);
+  }
+  @media (max-width:840px){ .product{ grid-template-columns:1fr; gap:20px; } }
+  .product-photo{ width:100%; aspect-ratio:1/1; overflow:hidden; border-radius:12px; }
+  .product-photo img{ width:100%; height:100%; object-fit:cover; filter:saturate(1) brightness(1.02); }
+  .product-info .origin-row{ display:flex; align-items:center; gap:10px; margin-bottom:9px; }
+  .product-info .dot{ width:8px; height:8px; border-radius:50%; }
+  .product-info .origin{ font-size:13px; color:var(--ink-faint); letter-spacing:.04em; text-transform:uppercase; }
+  .product-info h3{ font-family:"Archivo Black"; text-transform:uppercase; font-size:25px; margin-bottom:8px; }
+  .product-info .notes{ font-size:13px; color:var(--gold-soft); margin-bottom:12px; letter-spacing:.02em; }
+  .product-info p.desc{ font-size:15px; line-height:1.6; color:var(--ink-soft); max-width:50ch; margin:0 0 18px; }
+  .roast-meta{ display:flex; gap:32px; flex-wrap:wrap; align-items:center; }
+  .roast-bar-wrap{ display:flex; flex-direction:column; gap:8px; }
+  .roast-bar-wrap .lbl{ font-size:11.5px; color:var(--ink-faint); }
+  .roast-bar{ width:140px; height:5px; border-radius:3px; background:linear-gradient(to right,#EAD9B8,#B27E3E,#4A2A14); position:relative; }
+  .roast-bar .marker{ position:absolute; top:50%; width:11px; height:11px; border-radius:50%; background:var(--panel); border:2px solid var(--ink); transform:translate(-50%,-50%); }
+  .brew-for{ font-size:13px; color:var(--ink-soft); }
+  .brew-for b{ font-weight:600; color:var(--ink); }
+  .product-buy{ display:flex; flex-direction:column; align-items:flex-end; gap:14px; }
+  .price{ font-family:"Archivo Black"; font-size:20px; }
+  @media (max-width:840px){ .product-buy{ flex-direction:row; align-items:center; justify-content:space-between; width:100%; } }
+  /* ============ /CATALOG ============ */
+
+  .quiz{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:0; border-radius:22px; overflow:hidden; border:1px solid var(--line); }
+  @media (max-width:860px){ .quiz{ grid-template-columns:1fr; } }
+  .quiz-photo{ position:relative; min-height:360px; }
+  .quiz-photo img{ width:100%; height:100%; object-fit:cover; filter:brightness(.82) saturate(1); position:absolute; inset:0; }
+  .quiz-copy{ padding:64px 52px; background:var(--panel); }
+  @media (max-width:640px){ .quiz-copy{ padding:44px 26px; } }
+  .quiz-copy h2{ font-size:clamp(28px,4vw,44px); max-width:12ch; margin-bottom:18px; text-transform:uppercase; }
+  .quiz-copy p{ color:var(--ink-soft); font-size:15.5px; line-height:1.6; max-width:38ch; margin:0 0 30px; }
+  .quiz-list{ list-style:none; margin:30px 0 0; padding:0; display:flex; flex-direction:column; gap:12px; }
+  .quiz-list li{ font-size:14px; color:var(--ink-soft); display:flex; align-items:center; gap:10px; }
+  .quiz-list li::before{ content:""; width:5px; height:5px; border-radius:50%; background:var(--gold); display:inline-block; }
+
+  .values{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; position:relative; z-index:1; }
+  @media (max-width:820px){ .values{ grid-template-columns:1fr; } }
+  .value{ background:var(--panel); border:1px solid var(--line); border-radius:18px; overflow:hidden; }
+  .value-photo{ aspect-ratio:4/3; overflow:hidden; }
+  .value-photo img{ width:100%; height:100%; object-fit:cover; filter:saturate(.95) brightness(1); }
+  .value-copy{ padding:28px 26px 34px; }
+  .value h3{ font-family:"Archivo Black"; text-transform:uppercase; font-size:19px; margin-bottom:10px; }
+  .value p{ font-size:14.5px; line-height:1.6; color:var(--ink-soft); margin:0; }
+
+  .fresh{ position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; gap:0; border-radius:22px; overflow:hidden; border:1px solid var(--line); }
+  @media (max-width:760px){ .fresh{ grid-template-columns:1fr; } }
+  .fresh-photo{ min-height:320px; position:relative; }
+  .fresh-photo img{ width:100%; height:100%; object-fit:cover; position:absolute; inset:0; filter:saturate(1) brightness(1.02); }
+  .fresh-copy{ padding:56px 50px; background:var(--panel); display:flex; flex-direction:column; justify-content:center; }
+  @media (max-width:640px){ .fresh-copy{ padding:40px 26px; } }
+  .fresh-copy h2{ font-size:clamp(26px,3.4vw,38px); max-width:14ch; margin-bottom:18px; text-transform:uppercase; }
+  .fresh-copy p{ color:var(--ink-soft); font-size:15px; max-width:38ch; line-height:1.6; margin:0 0 26px; }
+  .stamp-row{ display:flex; gap:36px; }
+  .stamp-row .l{ font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:6px; }
+  .stamp-row .d{ font-family:"Archivo Black"; font-size:16px; text-transform:uppercase; }
+
+  .flavor-wheel{ display:grid; grid-template-columns:repeat(4,1fr); gap:22px; position:relative; z-index:1; }
+  @media (max-width:820px){ .flavor-wheel{ grid-template-columns:repeat(2,1fr); } }
+  .flavor-cell{ padding:22px; border-radius:14px; background:var(--panel); border-top:3px solid; }
+  .flavor-cell h3{ font-family:"Archivo Black"; text-transform:uppercase; font-size:18px; margin-bottom:10px; }
+  .flavor-cell p{ font-size:13.5px; color:var(--ink-soft); margin:0; line-height:1.5; }
+
+  .story{ position:relative; z-index:1; display:grid; grid-template-columns:.85fr 1.15fr; gap:0; border-radius:22px; overflow:hidden; border:1px solid var(--line); }
+  @media (max-width:860px){ .story{ grid-template-columns:1fr; } }
+  .story-photo{ min-height:420px; position:relative; }
+  .story-photo img{ width:100%; height:100%; object-fit:cover; position:absolute; inset:0; filter:saturate(1) brightness(1.05); }
+  .story-copy{ padding:64px 56px; background:var(--panel); }
+  @media (max-width:640px){ .story-copy{ padding:44px 26px; } }
+  .story-copy h2{ font-size:clamp(30px,4.4vw,46px); max-width:12ch; margin-bottom:26px; text-transform:uppercase; }
+  .story-copy p{ font-size:16px; line-height:1.75; color:var(--ink-soft); margin:0 0 20px; }
+  .story-copy p:last-of-type{ margin-bottom:30px; }
+
+  .steps{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; align-items:start; position:relative; z-index:1; }
+  @media (max-width:820px){ .steps{ grid-template-columns:1fr 1fr; } }
+  .step{ background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden; transition:transform .3s ease; }
+  .step:hover{ transform:translateY(-6px); }
+  /* a gentle, even wave instead of a flat row — columns 2 and 4 sit a touch lower,
+     and those same two cards get the lighter panel so the rhythm reads clearly */
+  .step:nth-child(2), .step:nth-child(4){ background:var(--panel-light); border-color:rgba(243,236,226,.22); margin-top:56px; }
+  @media (max-width:820px){ .step:nth-child(2), .step:nth-child(4){ margin-top:0; } }
+  .step-photo{ aspect-ratio:1/1; overflow:hidden; position:relative; }
+  .step:nth-child(2) .step-photo, .step:nth-child(4) .step-photo{ aspect-ratio:4/5; }
+  .step-photo img{ width:100%; height:100%; object-fit:cover; filter:saturate(1); }
+  .step-photo .n{ position:absolute; top:14px; left:14px; font-family:"Archivo Black"; font-size:14px; color:#1F1F1F; background:#FFFDF8; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.25); }
+  .step-copy{ padding:22px 22px 30px; }
+  .step h3{ font-family:"Archivo Black"; text-transform:uppercase; font-size:17px; margin-bottom:8px; }
+  .step p{ font-size:13.5px; line-height:1.55; color:var(--ink-soft); margin:0; }
+
+  .reviews-section{ position:relative; }
+  .reviews-bg{ position:absolute; inset:0; z-index:0; }
+  .reviews-bg img{ width:100%; height:100%; object-fit:cover; filter:brightness(.34) saturate(.85); }
+  .reviews-inner{ position:relative; z-index:1; }
+  .reviews{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:860px){ .reviews{ grid-template-columns:1fr; } }
+  /* these cards sit on a darkened photo backdrop, so they stay solid/opaque with fixed
+     high-contrast text rather than a translucent blend that let the photo wash out the text */
+  .review{ background:#FBF6EC; border:1px solid rgba(31,26,20,.08); border-radius:16px; padding:36px 30px; min-height:220px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 16px 34px -12px rgba(10,7,5,.45); }
+  .review .stars{ color:var(--gold); font-size:15px; letter-spacing:2px; margin-bottom:20px; }
+  .review q{ font-family:"Fraunces", serif; font-style:italic; font-size:18px; line-height:1.45; display:block; margin:0 0 22px; quotes:none; color:#241B12; }
+  .review .who{ font-size:13px; color:#5A4C3D; letter-spacing:.04em; text-transform:uppercase; font-weight:600; }
+
+  /* LOCATION */
+  .location{ position:relative; z-index:1; display:grid; grid-template-columns:1.1fr .9fr; gap:0; border-radius:22px; overflow:hidden; border:1px solid var(--line); background:var(--panel); }
+  @media (max-width:860px){ .location{ grid-template-columns:1fr; } }
+  .location-copy{ padding:60px 56px; display:flex; flex-direction:column; justify-content:center; }
+  @media (max-width:640px){ .location-copy{ padding:40px 26px; } }
+  .location-copy h2{ font-size:clamp(28px,3.8vw,42px); max-width:12ch; margin-bottom:18px; text-transform:uppercase; }
+  .location-copy p{ color:var(--ink-soft); font-size:15.5px; line-height:1.65; max-width:38ch; margin:0 0 28px; }
+  .location-meta{ display:flex; flex-direction:column; gap:16px; margin-bottom:30px; }
+  .location-meta .row{ display:flex; gap:12px; align-items:flex-start; }
+  .location-meta svg{ width:17px; height:17px; flex:none; margin-top:2px; color:var(--gold-soft); }
+  .location-meta .l{ font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:3px; }
+  .location-meta .v{ font-size:14.5px; color:var(--ink); }
+  .location-pin-btn{
+    display:inline-flex; align-items:center; gap:10px; background:#0E0A07; color:#F3ECE2;
+    border:none; border-radius:999px; padding:14px 24px 14px 18px; font-size:14.5px; font-weight:600;
+    text-decoration:none; width:fit-content; transition:background .2s ease, transform .2s ease;
+  }
+  .location-pin-btn:hover{ background:var(--gold); color:#FFFDF8; transform:translateY(-1px); }
+  .location-pin-btn svg{ width:18px; height:18px; }
+  .location-photo{ position:relative; min-height:340px; }
+  .location-photo img{ width:100%; height:100%; object-fit:cover; position:absolute; inset:0; filter:saturate(1) brightness(.95); }
+  .location-photo .pin-mark{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-100%);
+    width:40px; height:40px; color:var(--gold);
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,.5));
+  }
+
+  .sub{ position:relative; z-index:1; border-radius:22px; overflow:hidden; border:1px solid var(--line); min-height:340px; display:flex; align-items:center; }
+  .sub-bg{ position:absolute; inset:0; z-index:0; }
+  .sub-bg img{ width:100%; height:100%; object-fit:cover; filter:brightness(.46) saturate(1); }
+  /* extra dark scrim behind the centered text so it stays readable even over lighter
+     fragments of the photo (e.g. the glass jar) */
+  .sub-bg::after{ content:""; position:absolute; inset:0; background:radial-gradient(60% 90% at 50% 50%, rgba(10,7,5,.55) 0%, rgba(10,7,5,.25) 100%); }
+  .sub-inner{ position:relative; z-index:1; padding:60px; text-align:center; width:100%; }
+  @media (max-width:640px){ .sub-inner{ padding:44px 24px; } }
+  /* this section sits on a darkened photo backdrop regardless of the site's light theme,
+     so its text stays fixed light, decoupled from --ink/--ink-soft/--ink-faint */
+  .sub-inner h2{ font-size:clamp(28px,4vw,42px); max-width:20ch; margin:0 auto 16px; text-transform:uppercase; color:#F3ECE2; }
+  .sub-inner p{ color:#D8CBBC; font-size:15.5px; max-width:38ch; margin:0 auto 30px; }
+  .sub-meta{ margin-top:26px; font-size:13px; color:#B9AB9B; display:flex; justify-content:center; gap:22px; flex-wrap:wrap; }
+
+  .finalcta{ text-align:center; padding:60px 0 130px; position:relative; z-index:1; }
+  .finalcta h2{ font-size:clamp(38px,7.5vw,92px); max-width:16ch; margin:0 auto 22px; text-transform:uppercase; }
+  .finalcta .row{ display:flex; justify-content:center; gap:16px; margin-top:32px; flex-wrap:wrap; }
+  /* the closing CTA of the whole page — sized up so it reads as the final, most decisive button */
+  .finalcta .btn.primary{ padding:20px 48px; font-size:16px; }
+  .finalcta .or{ margin-top:22px; font-size:14px; color:var(--ink-faint); }
+  .finalcta .or a{ text-decoration:underline; text-underline-offset:3px; }
+
+  footer{ background:var(--panel); border-top:1px solid var(--line); padding:70px 0 calc(34px + env(safe-area-inset-bottom, 0px)); }
+  .foot-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1.1fr; gap:36px; }
+  @media (max-width:900px){ .foot-grid{ grid-template-columns:repeat(2,1fr); } }
+  .foot-grid h4{ font-size:12.5px; color:var(--ink-faint); margin:0 0 16px; font-weight:500; letter-spacing:.04em; text-transform:uppercase; }
+  .foot-grid ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  .foot-grid a{ color:var(--ink-soft); text-decoration:none; font-size:14.5px; }
+  .foot-grid a:hover{ color:var(--gold-soft); }
+  .foot-logo{ font-family:"Archivo Black"; font-size:21px; margin-bottom:14px; text-transform:uppercase; }
+  .foot-tag{ color:var(--ink-faint); font-size:14px; line-height:1.6; max-width:26ch; }
+  .foot-bottom{ margin-top:60px; padding-top:24px; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; font-size:13px; color:#666666; }
+  .foot-bottom .legal{ display:flex; gap:20px; flex-wrap:wrap; }
+  .foot-bottom a{ text-decoration:none; color:#666666; }
+  .foot-bottom a:hover{ color:var(--ink); }
+
+  /* ============ CART DRAWER ============ */
+  .cart-overlay{
+    position:fixed; inset:0; background:rgba(8,6,4,.55); z-index:200;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  .cart-overlay.open{ opacity:1; pointer-events:auto; }
+  .cart-drawer{
+    position:fixed; top:0; right:0; height:100%; width:min(420px, 100vw);
+    background:var(--panel); border-left:1px solid var(--line); z-index:201;
+    display:flex; flex-direction:column;
+    transform:translateX(100%); transition:transform .35s cubic-bezier(.22,.8,.28,1);
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .cart-drawer.open{ transform:translateX(0); }
+  .cart-head{ display:flex; align-items:center; justify-content:space-between; padding:22px 24px; border-bottom:1px solid var(--line); }
+  .cart-head h3{ font-family:"Archivo Black"; font-size:17px; text-transform:uppercase; }
+  .cart-close{ appearance:none; border:none; background:transparent; color:var(--ink-faint); cursor:pointer; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:50%; }
+  .cart-close:hover{ background:var(--bg); color:var(--ink); }
+  .cart-body{ flex:1; overflow-y:auto; padding:20px 24px; }
+  .cart-empty{ color:var(--ink-faint); font-size:14.5px; text-align:center; padding:60px 10px; }
+  .cart-item{ display:grid; grid-template-columns:64px 1fr auto; gap:14px; align-items:center; padding:16px 0; border-bottom:1px solid var(--line); }
+  .cart-item img{ width:64px; height:64px; object-fit:cover; border-radius:10px; }
+  .cart-item-name{ font-size:14.5px; font-weight:600; }
+  .cart-item-origin{ font-size:12px; color:var(--ink-faint); margin-bottom:8px; }
+  .qty-stepper{ display:flex; align-items:center; gap:10px; }
+  .qty-stepper button{ appearance:none; border:1px solid var(--line); background:transparent; color:var(--ink); width:22px; height:22px; border-radius:50%; cursor:pointer; font-size:13px; line-height:1; display:flex; align-items:center; justify-content:center; }
+  .qty-stepper button:hover{ border-color:var(--gold); color:var(--gold); }
+  .qty-stepper span{ font-size:13px; min-width:14px; text-align:center; }
+  .cart-item-right{ display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+  .cart-item-price{ font-family:"Archivo Black"; font-size:14px; }
+  .cart-item-remove{ appearance:none; border:none; background:transparent; color:var(--ink-faint); font-size:12px; cursor:pointer; text-decoration:underline; text-underline-offset:2px; padding:0; }
+  .cart-item-remove:hover{ color:var(--rose); }
+  .cart-foot{ border-top:1px solid var(--line); padding:20px 24px; }
+  .cart-subtotal-row{ display:flex; justify-content:space-between; align-items:center; font-size:15px; margin-bottom:16px; }
+  .cart-subtotal-row b{ font-family:"Archivo Black"; font-size:18px; }
+  .cart-foot .btn{ width:100%; justify-content:center; }
+  .cart-continue-link{ display:block; text-align:center; margin-top:12px; font-size:13px; color:var(--ink-faint); text-decoration:underline; text-underline-offset:2px; cursor:pointer; background:none; border:none; width:100%; padding:0; font-family:"Inter"; }
+  .cart-continue-link:hover{ color:var(--ink); }
+
+  .checkout-form{ display:flex; flex-direction:column; gap:14px; }
+  .checkout-form label{ font-size:12px; color:var(--ink-faint); display:block; margin-bottom:6px; }
+  .checkout-form input, .checkout-form select{
+    width:100%; background:var(--bg); border:1px solid var(--line); color:var(--ink);
+    border-radius:10px; padding:11px 13px; font-size:14px; font-family:"Inter"; outline:none;
+  }
+  .checkout-form input:focus, .checkout-form select:focus{ border-color:var(--gold); }
+  .checkout-row2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .order-summary{ background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:18px; font-size:13.5px; }
+  .order-summary .osrow{ display:flex; justify-content:space-between; padding:5px 0; color:var(--ink-soft); }
+  .order-summary .osrow.total{ border-top:1px solid var(--line); margin-top:8px; padding-top:12px; color:var(--ink); font-weight:600; }
+
+  .confirm-view{ text-align:center; padding:50px 10px; }
+  .confirm-view .ok-circle{ width:56px; height:56px; border-radius:50%; background:var(--gold); color:#FFFDF8; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }
+  .confirm-view h4{ font-family:"Archivo Black"; text-transform:uppercase; font-size:20px; margin-bottom:10px; }
+  .confirm-view p{ color:var(--ink-soft); font-size:14.5px; line-height:1.6; margin:0 0 18px; }
+  .confirm-order-id{ font-size:13px; color:var(--ink-faint); margin-bottom:26px; }
+  .confirm-order-id b{ color:var(--ink); }
+
+  .view-hidden{ display:none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <div class="navleft">
+        <div class="logo" translate="no">NOIRE</div>
+        <ul class="navlinks">
+          <li><a href="#taste" data-i18n="nav_taste">Taste</a></li>
+          <li><a href="#coffee" data-i18n="nav_coffee">Coffee</a></li>
+          <li><a href="#quiz" data-i18n="nav_quiz">Quiz</a></li>
+          <li><a href="#story" data-i18n="nav_story">Story</a></li>
+          <li><a href="#location" data-i18n="nav_location">Visit</a></li>
+        </ul>
+      </div>
+      <div class="navright">
+        <div class="langswitch" role="group" aria-label="Language">
+          <button type="button" data-lang="en" class="active">EN</button>
+          <button type="button" data-lang="uk">UA</button>
+          <button type="button" data-lang="ru">RU</button>
+        </div>
+        <button type="button" class="cart-btn" id="cartOpenBtn" aria-label="Cart">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h2l2.4 12.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9.5" cy="20.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="17.5" cy="20.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+          <span class="cart-badge" id="cartBadge">0</span>
+        </button>
+        <a class="btn primary btn-pill" href="#coffee" data-i18n="nav_shopall">Shop all</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO (untouched) -->
+  <section class="hero">
+    <div class="hero-media">
+      <img src="pexels-photo-31228818.avif" alt="Dark roasted coffee beans, close texture" onerror="window.__noirePhotoFallback(this)">
+    </div>
+    <div class="hero-scrim"></div>
+    <div class="grain"></div>
+    <div class="wrap hero-content">
+      <div class="hero-tag"><i></i><span data-i18n="hero_tag">Specialty coffee, roasted in small batches</span></div>
+      <h1 class="display" data-i18n-html="hero_h1">Find your<br>coffee.</h1>
+      <p class="lede" data-i18n="hero_lede">Coffee that matches your taste, your mood and your everyday ritual — carefully roasted, freshly packed, and easy to choose.</p>
+      <div class="ctarow">
+        <a href="#quiz" class="btn primary" data-i18n="hero_cta1">Find your coffee</a>
+        <a href="#coffee" class="btn" style="border-color:rgba(243,236,226,.4);" data-i18n="hero_cta2">Shop all coffee</a>
+      </div>
+    </div>
+    <div class="scrollcue" data-i18n="scrollcue">Scroll</div>
+    <div class="hero-spot-wrap">
+      <a href="#coffee" class="hero-spot">
+        <div class="hero-spot-label" data-i18n="hero_spot_label">Now roasting</div>
+        <div class="hero-spot-name" translate="no">Ethiopia — Berry Glow</div>
+        <div class="hero-spot-meta"><span class="hero-spot-dot"></span><span data-i18n="p1_roast">Light roast</span></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- TASTE FINDER -->
+  <div class="wrap" id="taste">
+    <section class="section-pad">
+      <div class="num-mark" style="top:-30px; left:-10px;">02</div>
+      <div class="section-head">
+        <h2 class="display" data-i18n-html="taste_h2">What does your<br>perfect cup taste like?</h2>
+        <p data-i18n="taste_p">You don't need to be a coffee expert to find great coffee. Just choose what you love.</p>
+      </div>
+      <div class="taste-grid">
+        <a class="taste-card" href="#coffee">
+          <img src="pexels-photo-19886786.avif" alt="Dark roasted coffee beans" onerror="window.__noirePhotoFallback(this)">
+          <div class="taste-overlay">
+            <div class="taste-swatch" style="background:var(--cocoa);"></div>
+            <h3 data-i18n="taste1_title">Rich &amp; chocolatey</h3>
+            <div class="notes" data-i18n="taste1_notes">Cocoa · Roasted nuts</div>
+            <p class="taste-blurb" data-i18n="taste1_blurb">Our darkest, most comforting roast — like dessert in a cup.</p>
+            <div class="taste-intensity-row" aria-label="Intensity 5 of 5">
+              <span class="taste-intensity-label" data-i18n="taste_intensity_label">Intensity</span>
+              <span class="taste-intensity" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+            </div>
+          </div>
+        </a>
+        <a class="taste-card" href="#coffee">
+          <img src="pexels-photo-7859827.avif" alt="Warm espresso with latte art" onerror="window.__noirePhotoFallback(this)">
+          <div class="taste-overlay">
+            <div class="taste-swatch" style="background:var(--caramel);"></div>
+            <h3 data-i18n="taste2_title">Sweet &amp; smooth</h3>
+            <div class="notes" data-i18n="taste2_notes">Caramel · Honey</div>
+            <div class="taste-intensity-row" aria-label="Intensity 3 of 5">
+              <span class="taste-intensity-label" data-i18n="taste_intensity_label">Intensity</span>
+              <span class="taste-intensity" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+            </div>
+          </div>
+        </a>
+        <a class="taste-card" href="#coffee">
+          <img src="pexels-photo-7125542.avif" alt="Ripe red coffee cherry on the farm" onerror="window.__noirePhotoFallback(this)">
+          <div class="taste-overlay">
+            <div class="taste-swatch" style="background:var(--rose);"></div>
+            <h3 data-i18n="taste3_title">Fruity &amp; bright</h3>
+            <div class="notes" data-i18n="taste3_notes">Berry · Citrus</div>
+            <div class="taste-intensity-row" aria-label="Intensity 2 of 5">
+              <span class="taste-intensity-label" data-i18n="taste_intensity_label">Intensity</span>
+              <span class="taste-intensity" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+            </div>
+          </div>
+        </a>
+        <a class="taste-card" href="#coffee">
+          <img src="pexels-photo-7658094.avif" alt="Pour-over coffee brewing, gooseneck kettle" onerror="window.__noirePhotoFallback(this)">
+          <div class="taste-overlay">
+            <div class="taste-swatch" style="background:var(--lavender);"></div>
+            <h3 data-i18n="taste4_title">Floral &amp; light</h3>
+            <div class="notes" data-i18n="taste4_notes">Jasmine · Bergamot</div>
+            <div class="taste-intensity-row" aria-label="Intensity 1 of 5">
+              <span class="taste-intensity-label" data-i18n="taste_intensity_label">Intensity</span>
+              <span class="taste-intensity" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+  </div>
+
+  <!-- CATALOG (page 03) -->
+  <div class="wrap" id="coffee">
+    <section class="section-pad">
+      <div class="catalog-banner">
+        <div class="catalog-copy">
+          <p class="eyebrow" data-i18n="catalog_eyebrow">Exceptional quality</p>
+          <h2 class="display" data-i18n-html="catalog_h2">Small batches.<br>Full character.</h2>
+          <p data-i18n="catalog_p">Our mission is to source, roast and pack coffee we're genuinely proud to put our name on.</p>
+          <a href="#productlist" class="btn primary btn-pill" data-i18n="catalog_cta">Open the catalog</a>
+        </div>
+        <div class="catalog-photo">
+          <img src="pexels-photo-4815954.avif" alt="Coffee beans, close texture" onerror="window.__noirePhotoFallback(this)">
+        </div>
+      </div>
+
+      <div class="product-list" id="productlist">
+        <div class="product">
+          <div class="product-photo"><img src="pexels-photo-4815954.avif" alt="Ripe coffee cherry, Ethiopia plantation" onerror="window.__noirePhotoFallback(this)"></div>
+          <div class="product-info">
+            <div class="origin-row"><span class="dot" style="background:var(--rose);"></span><span class="origin" data-i18n="p1_origin">Ethiopia</span></div>
+            <h3 translate="no">Berry Glow</h3>
+            <div class="notes" data-i18n="p1_notes">Fruity · Floral · Bright</div>
+            <p class="desc" data-i18n="p1_desc">A vibrant cup with berry sweetness, delicate floral notes and a clean finish.</p>
+            <div class="roast-meta">
+              <div class="roast-bar-wrap"><span class="lbl" data-i18n="p1_roast">Light roast</span><div class="roast-bar"><div class="marker" style="left:14%;"></div></div></div>
+              <div class="brew-for"><span data-i18n="brew_for_label">Best for</span> <b data-i18n="p1_brew">Filter · V60</b></div>
+            </div>
+          </div>
+          <div class="product-buy">
+            <span class="price">€16 <span style="font-size:12px;color:var(--ink-faint);font-family:'Inter';" data-i18n="per_250g">/ 250g</span></span>
+            <button class="btn primary btn-pill add-to-cart" type="button"
+              data-id="p1" data-name="Berry Glow" data-origin-key="p1_origin" data-price="16"
+              data-img="pexels-photo-4815954.avif"
+              data-i18n="add_to_cart">Add to cart</button>
+          </div>
+        </div>
+
+        <div class="product">
+          <div class="product-photo"><img src="pexels-photo-7125425.avif" alt="Cup of coffee, Colombia" onerror="window.__noirePhotoFallback(this)"></div>
+          <div class="product-info">
+            <div class="origin-row"><span class="dot" style="background:var(--caramel);"></span><span class="origin" data-i18n="p2_origin">Colombia</span></div>
+            <h3 translate="no">Golden Hour</h3>
+            <div class="notes" data-i18n="p2_notes">Sweet · Smooth · Balanced</div>
+            <p class="desc" data-i18n="p2_desc">Caramel sweetness, ripe fruit and soft chocolate make this an easy everyday favorite.</p>
+            <div class="roast-meta">
+              <div class="roast-bar-wrap"><span class="lbl" data-i18n="p2_roast">Medium roast</span><div class="roast-bar"><div class="marker" style="left:50%;"></div></div></div>
+              <div class="brew-for"><span data-i18n="brew_for_label">Best for</span> <b data-i18n="p2_brew">Espresso · Moka pot</b></div>
+            </div>
+          </div>
+          <div class="product-buy">
+            <span class="price">€15 <span style="font-size:12px;color:var(--ink-faint);font-family:'Inter';" data-i18n="per_250g">/ 250g</span></span>
+            <button class="btn primary btn-pill add-to-cart" type="button"
+              data-id="p2" data-name="Golden Hour" data-origin-key="p2_origin" data-price="15"
+              data-img="pexels-photo-7125425.avif"
+              data-i18n="add_to_cart">Add to cart</button>
+          </div>
+        </div>
+
+        <div class="product">
+          <div class="product-photo"><img src="pexels-photo-18394807.avif" alt="Dark roasted coffee beans, Brazil" onerror="window.__noirePhotoFallback(this)"></div>
+          <div class="product-info">
+            <div class="origin-row"><span class="dot" style="background:var(--cocoa);"></span><span class="origin" data-i18n="p3_origin">Brazil</span></div>
+            <h3 translate="no">After Dark</h3>
+            <div class="notes" data-i18n="p3_notes">Rich · Nutty · Chocolatey</div>
+            <p class="desc" data-i18n="p3_desc">Full-bodied and comforting, with notes of cocoa, roasted nuts and brown sugar.</p>
+            <div class="roast-meta">
+              <div class="roast-bar-wrap"><span class="lbl" data-i18n="p3_roast">Medium-dark roast</span><div class="roast-bar"><div class="marker" style="left:76%;"></div></div></div>
+              <div class="brew-for"><span data-i18n="brew_for_label">Best for</span> <b data-i18n="p3_brew">Espresso · French press</b></div>
+            </div>
+          </div>
+          <div class="product-buy">
+            <span class="price">€14 <span style="font-size:12px;color:var(--ink-faint);font-family:'Inter';" data-i18n="per_250g">/ 250g</span></span>
+            <button class="btn primary btn-pill add-to-cart" type="button"
+              data-id="p3" data-name="After Dark" data-origin-key="p3_origin" data-price="14"
+              data-img="pexels-photo-18394807.avif"
+              data-i18n="add_to_cart">Add to cart</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="wrap" id="quiz">
+    <section class="section-pad" style="padding-top:0;">
+      <div class="quiz">
+        <div class="quiz-copy">
+          <p class="eyebrow" data-i18n="quiz_eyebrow">Not sure which one?</p>
+          <h2 class="display" data-i18n="quiz_h2">Your perfect coffee is 30 seconds away.</h2>
+          <p data-i18n="quiz_p">Too many choices? Tell us what you like, and we'll match you with a coffee you'll love.</p>
+          <a class="btn primary btn-pill" href="#" data-i18n="quiz_cta">Take the coffee quiz</a>
+          <ul class="quiz-list">
+            <li data-i18n="quiz_li1">No complicated coffee terms</li>
+            <li data-i18n="quiz_li2">No guessing</li>
+            <li data-i18n="quiz_li3">Just your taste</li>
+          </ul>
+        </div>
+        <div class="quiz-photo"><img src="pexels-photo-8937260.avif" alt="Coffee brewing in a filter, close up" onerror="window.__noirePhotoFallback(this)"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- WHY -->
+  <div class="wrap">
+    <section class="section-pad">
+      <div class="section-head">
+        <h2 class="display" data-i18n-html="why_h2">Good coffee should<br>feel simple.</h2>
+        <p data-i18n="why_p">We believe choosing coffee shouldn't require a dictionary. That's why we focus on three things.</p>
+      </div>
+      <div class="values">
+        <div class="value">
+          <div class="value-photo"><img src="pexels-photo-16139709.avif" alt="Coffee roasting machine, close up" onerror="window.__noirePhotoFallback(this)"></div>
+          <div class="value-copy"><h3 data-i18n="value1_title">Fresh</h3><p data-i18n="value1_desc">Roasted in small batches and packed fresh to preserve the character of every coffee.</p></div>
+        </div>
+        <div class="value">
+          <div class="value-photo"><img src="pexels-photo-36702829.avif" alt="Barista brewing coffee with precision" onerror="window.__noirePhotoFallback(this)"></div>
+          <div class="value-copy"><h3 data-i18n="value2_title">Honest</h3><p data-i18n="value2_desc">Clear information about origin, roast, flavor and brewing — so you know exactly what you're buying.</p></div>
+        </div>
+        <div class="value">
+          <div class="value-photo"><img src="pexels-photo-32480142.avif" alt="Coffee cup on a wooden table in a cafe" onerror="window.__noirePhotoFallback(this)"></div>
+          <div class="value-copy"><h3 data-i18n="value3_title">Personal</h3><p data-i18n="value3_desc">Coffee is personal. Your perfect cup depends on what you love, not what someone else tells you to drink.</p></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FRESHNESS -->
+  <div class="wrap">
+    <section class="section-pad" style="padding-top:0;">
+      <div class="fresh">
+        <div class="fresh-copy">
+          <h2 class="display" data-i18n-html="fresh_h2">Roasted fresh.<br>Made to be enjoyed.</h2>
+          <p data-i18n="fresh_p">Every batch is roasted with care and packed shortly after roasting — from our roaster to your kitchen.</p>
+          <div class="stamp-row">
+            <div><div class="l" data-i18n="fresh_roasted_label">Roasted</div><div class="d" data-i18n="fresh_roasted_date">18 Sep 2026</div></div>
+            <div><div class="l" data-i18n="fresh_packed_label">Packed</div><div class="d" data-i18n="fresh_packed_date">19 Sep 2026</div></div>
+          </div>
+        </div>
+        <div class="fresh-photo"><img src="pexels-photo-8469500.avif" alt="Roasting fresh coffee beans, artisanal process" onerror="window.__noirePhotoFallback(this)"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FLAVOR LANGUAGE -->
+  <div class="wrap">
+    <section class="section-pad">
+      <div class="section-head">
+        <h2 class="display" data-i18n-html="flavor_h2">Coffee has a language<br>of its own.</h2>
+        <p data-i18n="flavor_p">But you don't need to know it all — we translate every coffee into simple flavors you can recognize.</p>
+      </div>
+      <div class="flavor-wheel">
+        <div class="flavor-cell" style="border-color:var(--caramel);"><h3 data-i18n="flavor1_title">Sweet</h3><p data-i18n="flavor1_desc">Caramel · Honey · Brown sugar</p></div>
+        <div class="flavor-cell" style="border-color:var(--rose);"><h3 data-i18n="flavor2_title">Fruity</h3><p data-i18n="flavor2_desc">Berry · Citrus · Peach</p></div>
+        <div class="flavor-cell" style="border-color:var(--cocoa);"><h3 data-i18n="flavor3_title">Rich</h3><p data-i18n="flavor3_desc">Chocolate · Cocoa · Nuts</p></div>
+        <div class="flavor-cell" style="border-color:var(--lavender);"><h3 data-i18n="flavor4_title">Bright</h3><p data-i18n="flavor4_desc">Citrus · Floral · Tea-like</p></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- STORY -->
+  <div class="wrap" id="story">
+    <section class="section-pad">
+      <div class="num-mark" style="top:-20px; left:-10px;">08</div>
+      <div class="story">
+        <div class="story-photo"><img src="pexels-photo-31671730.avif" alt="Cozy coffee shop interior" onerror="window.__noirePhotoFallback(this)"></div>
+        <div class="story-copy">
+          <h2 class="display" data-i18n-html="story_h2">Coffee, without<br>the complication.</h2>
+          <p data-i18n="story_p1">We started NOIRE with a simple idea: great coffee shouldn't feel intimidating.</p>
+          <p data-i18n="story_p2">Behind every bag is a unique origin, a careful roasting process, and people who care deeply about what ends up in your cup. Our job is to make that experience easier for you.</p>
+          <a class="btn primary btn-pill" href="#" data-i18n="story_cta">Discover our story</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- SOURCE STEPS -->
+  <div class="wrap">
+    <section class="section-pad">
+      <div class="section-head">
+        <h2 class="display" data-i18n-html="source_h2">From origin<br>to your cup.</h2>
+        <p data-i18n="source_p">We work with carefully selected coffees and roast each one to highlight its natural character.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="step-photo"><span class="n">01</span><img src="pexels-photo-7125558.avif" alt="Farmer harvesting ripe coffee cherries" onerror="window.__noirePhotoFallback(this)"></div><div class="step-copy"><h3 data-i18n="step1_title">Source</h3><p data-i18n="step1_desc">We select coffees for their quality, character and distinctive flavor.</p></div></div>
+        <div class="step"><div class="step-photo"><span class="n">02</span><img src="pexels-photo-22718754.avif" alt="Coffee beans in a roasting machine" onerror="window.__noirePhotoFallback(this)"></div><div class="step-copy"><h3 data-i18n="step2_title">Roast</h3><p data-i18n="step2_desc">Each coffee is roasted according to its individual profile.</p></div></div>
+        <div class="step"><div class="step-photo"><span class="n">03</span><img src="pexels-photo-8912741.avif" alt="Roasted coffee beans, close texture" onerror="window.__noirePhotoFallback(this)"></div><div class="step-copy"><h3 data-i18n="step3_title">Pack</h3><p data-i18n="step3_desc">Coffee is packed fresh to help preserve its flavor and aroma.</p></div></div>
+        <div class="step"><div class="step-photo"><span class="n">04</span><img src="pexels-photo-19723763.avif" alt="Pouring brewed coffee into a glass" onerror="window.__noirePhotoFallback(this)"></div><div class="step-copy"><h3 data-i18n="step4_title">Enjoy</h3><p data-i18n="step4_desc">You brew it your way and make it part of your everyday ritual.</p></div></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- REVIEWS -->
+  <section class="reviews-section" id="reviews">
+    <div class="reviews-bg"><img src="pexels-photo-17744101.avif" alt="Coffee beans, background texture" onerror="window.__noirePhotoFallback(this)"></div>
+    <div class="wrap reviews-inner">
+      <div class="section-pad" style="padding-bottom:120px;">
+        <div class="section-head">
+          <h2 class="display" style="color:#F3ECE2;" data-i18n-html="reviews_h2">Your new favorite<br>coffee?</h2>
+          <p>&nbsp;</p>
+        </div>
+        <div class="reviews">
+          <div class="review"><div><div class="stars">★★★★★</div><q data-i18n="review1_quote">Finally found a coffee that actually tastes the way I expected. The tasting notes made choosing so easy.</q></div><div class="who" data-i18n="review1_who">Anna M.</div></div>
+          <div class="review"><div><div class="stars">★★★★★</div><q data-i18n="review2_quote">I usually have no idea what coffee to buy. The quiz matched me with exactly what I like.</q></div><div class="who" data-i18n="review2_who">Mark T.</div></div>
+          <div class="review"><div><div class="stars">★★★★★</div><q data-i18n="review3_quote">Fresh, smooth and genuinely delicious. I've already ordered another bag.</q></div><div class="who" data-i18n="review3_who">Sofia R.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOCATION -->
+  <div class="wrap" id="location">
+    <section class="section-pad">
+      <div class="location">
+        <div class="location-copy">
+          <p class="eyebrow" data-i18n="location_eyebrow">Come say hello</p>
+          <h2 class="display" data-i18n-html="location_h2">Visit our<br>roastery</h2>
+          <p data-i18n="location_text">Step by for a cup, watch the roaster at work, or just say hi — we're always happy to see you.</p>
+          <div class="location-meta">
+            <div class="row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.4"/></svg>
+              <div><div class="l" data-i18n="location_address_label">Address</div><div class="v" data-i18n="location_address_value">12 Roastery Lane, Amsterdam, Netherlands</div></div>
+            </div>
+            <div class="row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+              <div><div class="l" data-i18n="location_hours_label">Open</div><div class="v" data-i18n="location_hours_value">Mon – Sat, 8:00 – 18:00</div></div>
+            </div>
+          </div>
+          <a class="location-pin-btn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=12+Roastery+Lane+Amsterdam+Netherlands">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.4"/></svg>
+            <span data-i18n="location_btn">Our location</span>
+          </a>
+        </div>
+        <div class="location-photo">
+          <img src="pexels-photo-32480142.avif" alt="Cozy NOIRE roastery interior" onerror="window.__noirePhotoFallback(this)">
+          <svg class="pin-mark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s-8-7.5-8-13.5A8 8 0 0 1 20 8.5C20 14.5 12 22 12 22z"/><circle cx="12" cy="8.5" r="3" fill="#18120C"/></svg>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- SUBSCRIPTION -->
+  <div class="wrap">
+    <section class="section-pad">
+      <div class="sub">
+        <div class="sub-bg"><img src="pexels-photo-30925511.avif" alt="Elegant coffee setting" onerror="window.__noirePhotoFallback(this)"></div>
+        <div class="sub-inner">
+          <h2 class="display" data-i18n-html="sub_h2">Never run out<br>of good coffee.</h2>
+          <p data-i18n="sub_p">Your favorite coffee, delivered when you need it. Choose your coffee, choose your frequency — we'll take care of the rest.</p>
+          <a class="btn primary btn-pill" href="#" data-i18n="sub_cta">Start your subscription</a>
+          <div class="sub-meta"><span data-i18n="sub_meta1">Pause anytime</span><span data-i18n="sub_meta2">Skip a delivery</span><span data-i18n="sub_meta3">Change your coffee</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FINAL CTA -->
+  <div class="wrap">
+    <section class="finalcta">
+      <h2 class="display" data-i18n-html="final_h2">Ready to find<br>your coffee?</h2>
+      <p style="color:var(--ink-soft); font-size:16px;" data-i18n="final_p">Your perfect cup might be closer than you think.</p>
+      <div class="row"><a class="btn primary btn-pill" href="#quiz" data-i18n="final_cta">Find my coffee</a></div>
+      <p class="or"><span data-i18n="final_or_pre">Or </span><a href="#coffee" data-i18n="final_or_link">explore all our coffees</a><span data-i18n="final_or_post"> and find your next favorite.</span></p>
+    </section>
+  </div>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div><div class="foot-logo" translate="no">NOIRE</div><p class="foot-tag" data-i18n="footer_tagline">Specialty coffee made simple. Freshly roasted, carefully sourced, made for your everyday ritual.</p></div>
+      <div><h4 data-i18n="footer_shop_h4">Shop</h4><ul><li><a href="#coffee" data-i18n="footer_shop_1">All coffee</a></li><li><a href="#" data-i18n="footer_shop_2">Best sellers</a></li><li><a href="#" data-i18n="footer_shop_3">Subscriptions</a></li><li><a href="#" data-i18n="footer_shop_4">Gift cards</a></li></ul></div>
+      <div><h4 data-i18n="footer_discover_h4">Discover</h4><ul><li><a href="#story" data-i18n="footer_discover_1">Our story</a></li><li><a href="#" data-i18n="footer_discover_2">Coffee guide</a></li><li><a href="#" data-i18n="footer_discover_3">Brewing guide</a></li><li><a href="#" data-i18n="footer_discover_4">FAQ</a></li></ul></div>
+      <div><h4 data-i18n="footer_follow_h4">Follow</h4><ul><li><a href="#" translate="no">Instagram</a></li><li><a href="#" translate="no">TikTok</a></li><li><a href="#" translate="no">Pinterest</a></li></ul></div>
+      <div><h4 data-i18n="footer_contact_h4">Contact</h4><ul><li><a href="mailto:hello@noirecoffee.com" translate="no">hello@noirecoffee.com</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span data-i18n="footer_copyright">© 2026 NOIRE. All rights reserved.</span>
+      <div class="legal"><a href="#" data-i18n="footer_privacy">Privacy policy</a><a href="#" data-i18n="footer_terms">Terms &amp; conditions</a><a href="#" data-i18n="footer_shipping">Shipping &amp; returns</a></div>
+    </div>
+  </div>
+</footer>
+
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
+
+  <!-- view: cart list -->
+  <div id="viewCart">
+    <div class="cart-head">
+      <h3 data-i18n="cart_title">Your cart</h3>
+      <button class="cart-close" id="cartCloseBtn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="cart-body" id="cartItems"></div>
+    <div class="cart-foot" id="cartFoot">
+      <div class="cart-subtotal-row"><span data-i18n="cart_subtotal">Subtotal</span><b id="cartSubtotal">€0</b></div>
+      <button class="btn primary btn-pill" id="cartCheckoutBtn" data-i18n="cart_checkout">Checkout</button>
+      <button class="cart-continue-link" id="cartContinueBtn" data-i18n="cart_continue">Continue shopping</button>
+    </div>
+  </div>
+
+  <!-- view: checkout form -->
+  <div id="viewCheckout" class="view-hidden">
+    <div class="cart-head">
+      <h3 data-i18n="checkout_title">Shipping details</h3>
+      <button class="cart-close" id="checkoutCloseBtn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="cart-body">
+      <div class="order-summary" id="orderSummary"></div>
+      <form class="checkout-form" id="checkoutForm">
+        <div>
+          <label data-i18n="checkout_name">Full name</label>
+          <input type="text" required>
+        </div>
+        <div>
+          <label>Email</label>
+          <input type="email" required>
+        </div>
+        <div>
+          <label data-i18n="checkout_address">Address</label>
+          <input type="text" required>
+        </div>
+        <div class="checkout-row2">
+          <div>
+            <label data-i18n="checkout_city">City</label>
+            <input type="text" required>
+          </div>
+          <div>
+            <label data-i18n="checkout_postal">Postal code</label>
+            <input type="text" required>
+          </div>
+        </div>
+        <div>
+          <label data-i18n="checkout_country">Country</label>
+          <input type="text" required>
+        </div>
+      </form>
+    </div>
+    <div class="cart-foot">
+      <button class="btn primary btn-pill" id="placeOrderBtn" data-i18n="checkout_place">Place order</button>
+      <button class="cart-continue-link" id="backToCartBtn" data-i18n="checkout_back">Back to cart</button>
+    </div>
+  </div>
+
+  <!-- view: confirmation -->
+  <div id="viewConfirm" class="view-hidden">
+    <div class="cart-head">
+      <h3>NOIRE</h3>
+      <button class="cart-close" id="confirmCloseBtn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="cart-body">
+      <div class="confirm-view">
+        <div class="ok-circle"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 12l6 6L20 6"/></svg></div>
+        <h4 data-i18n="confirm_title">Thank you!</h4>
+        <p data-i18n="confirm_text">Your order is on its way. A confirmation has been sent to your email.</p>
+        <div class="confirm-order-id"><span data-i18n="confirm_order">Order</span> <b id="confirmOrderId">#NOIRE-000000</b></div>
+        <button class="btn primary btn-pill" id="confirmContinueBtn" data-i18n="cart_continue">Continue shopping</button>
+      </div>
+    </div>
+  </div>
+
+</aside>
+
+<script>
+(function(){
+  // window.__noirePhotoFallback (extension auto-retry for local pexels-photo-N
+  // files) is defined in <head>, before this point, and wired via inline
+  // onerror="" attributes on the <img> tags themselves.
+
+  var DICT = {
+    en: {
+      nav_taste:"Taste", nav_coffee:"Coffee", nav_quiz:"Quiz", nav_story:"Story", nav_location:"Visit", nav_shopall:"Shop all",
+      hero_tag:"Specialty coffee, roasted in small batches", hero_h1:"Find your<br>coffee.",
+      hero_lede:"Coffee that matches your taste, your mood and your everyday ritual — carefully roasted, freshly packed, and easy to choose.",
+      hero_cta1:"Find your coffee", hero_cta2:"Shop all coffee", scrollcue:"Scroll", hero_spot_label:"Now roasting",
+      taste_h2:"What does your<br>perfect cup taste like?", taste_p:"You don't need to be a coffee expert to find great coffee. Just choose what you love.",
+      taste_intensity_label:"Intensity",
+      taste1_title:"Rich &amp; chocolatey", taste1_notes:"Cocoa · Roasted nuts", taste1_blurb:"Our darkest, most comforting roast — like dessert in a cup.",
+      taste2_title:"Sweet &amp; smooth", taste2_notes:"Caramel · Honey",
+      taste3_title:"Fruity &amp; bright", taste3_notes:"Berry · Citrus",
+      taste4_title:"Floral &amp; light", taste4_notes:"Jasmine · Bergamot",
+      catalog_eyebrow:"Exceptional quality", catalog_h2:"Small batches.<br>Full character.",
+      catalog_p:"Our mission is to source, roast and pack coffee we're genuinely proud to put our name on.", catalog_cta:"Open the catalog",
+      p1_origin:"Ethiopia", p1_notes:"Fruity · Floral · Bright", p1_desc:"A vibrant cup with berry sweetness, delicate floral notes and a clean finish.",
+      p1_roast:"Light roast", p1_brew:"Filter · V60",
+      p2_origin:"Colombia", p2_notes:"Sweet · Smooth · Balanced", p2_desc:"Caramel sweetness, ripe fruit and soft chocolate make this an easy everyday favorite.",
+      p2_roast:"Medium roast", p2_brew:"Espresso · Moka pot",
+      p3_origin:"Brazil", p3_notes:"Rich · Nutty · Chocolatey", p3_desc:"Full-bodied and comforting, with notes of cocoa, roasted nuts and brown sugar.",
+      p3_roast:"Medium-dark roast", p3_brew:"Espresso · French press",
+      brew_for_label:"Best for", add_to_cart:"Add to cart", per_250g:"/ 250g",
+      quiz_eyebrow:"Not sure which one?", quiz_h2:"Your perfect coffee is 30 seconds away.",
+      quiz_p:"Too many choices? Tell us what you like, and we'll match you with a coffee you'll love.",
+      quiz_cta:"Take the coffee quiz", quiz_li1:"No complicated coffee terms", quiz_li2:"No guessing", quiz_li3:"Just your taste",
+      why_h2:"Good coffee should<br>feel simple.", why_p:"We believe choosing coffee shouldn't require a dictionary. That's why we focus on three things.",
+      value1_title:"Fresh", value1_desc:"Roasted in small batches and packed fresh to preserve the character of every coffee.",
+      value2_title:"Honest", value2_desc:"Clear information about origin, roast, flavor and brewing — so you know exactly what you're buying.",
+      value3_title:"Personal", value3_desc:"Coffee is personal. Your perfect cup depends on what you love, not what someone else tells you to drink.",
+      fresh_h2:"Roasted fresh.<br>Made to be enjoyed.", fresh_p:"Every batch is roasted with care and packed shortly after roasting — from our roaster to your kitchen.",
+      fresh_roasted_label:"Roasted", fresh_packed_label:"Packed", fresh_roasted_date:"18 Sep 2026", fresh_packed_date:"19 Sep 2026",
+      flavor_h2:"Coffee has a language<br>of its own.", flavor_p:"But you don't need to know it all — we translate every coffee into simple flavors you can recognize.",
+      flavor1_title:"Sweet", flavor1_desc:"Caramel · Honey · Brown sugar",
+      flavor2_title:"Fruity", flavor2_desc:"Berry · Citrus · Peach",
+      flavor3_title:"Rich", flavor3_desc:"Chocolate · Cocoa · Nuts",
+      flavor4_title:"Bright", flavor4_desc:"Citrus · Floral · Tea-like",
+      story_h2:"Coffee, without<br>the complication.",
+      story_p1:"We started NOIRE with a simple idea: great coffee shouldn't feel intimidating.",
+      story_p2:"Behind every bag is a unique origin, a careful roasting process, and people who care deeply about what ends up in your cup. Our job is to make that experience easier for you.",
+      story_cta:"Discover our story",
+      source_h2:"From origin<br>to your cup.", source_p:"We work with carefully selected coffees and roast each one to highlight its natural character.",
+      step1_title:"Source", step1_desc:"We select coffees for their quality, character and distinctive flavor.",
+      step2_title:"Roast", step2_desc:"Each coffee is roasted according to its individual profile.",
+      step3_title:"Pack", step3_desc:"Coffee is packed fresh to help preserve its flavor and aroma.",
+      step4_title:"Enjoy", step4_desc:"You brew it your way and make it part of your everyday ritual.",
+      reviews_h2:"Your new favorite<br>coffee?",
+      review1_quote:"Finally found a coffee that actually tastes the way I expected. The tasting notes made choosing so easy.", review1_who:"Anna M.",
+      review2_quote:"I usually have no idea what coffee to buy. The quiz matched me with exactly what I like.", review2_who:"Mark T.",
+      review3_quote:"Fresh, smooth and genuinely delicious. I've already ordered another bag.", review3_who:"Sofia R.",
+      location_eyebrow:"Come say hello", location_h2:"Visit our<br>roastery",
+      location_text:"Step by for a cup, watch the roaster at work, or just say hi — we're always happy to see you.",
+      location_address_label:"Address", location_address_value:"12 Roastery Lane, Amsterdam, Netherlands",
+      location_hours_label:"Open", location_hours_value:"Mon – Sat, 8:00 – 18:00", location_btn:"Our location",
+      sub_h2:"Never run out<br>of good coffee.",
+      sub_p:"Your favorite coffee, delivered when you need it. Choose your coffee, choose your frequency — we'll take care of the rest.",
+      sub_cta:"Start your subscription", sub_meta1:"Pause anytime", sub_meta2:"Skip a delivery", sub_meta3:"Change your coffee",
+      final_h2:"Ready to find<br>your coffee?", final_p:"Your perfect cup might be closer than you think.", final_cta:"Find my coffee",
+      final_or_pre:"Or ", final_or_link:"explore all our coffees", final_or_post:" and find your next favorite.",
+      footer_tagline:"Specialty coffee made simple. Freshly roasted, carefully sourced, made for your everyday ritual.",
+      footer_shop_h4:"Shop", footer_shop_1:"All coffee", footer_shop_2:"Best sellers", footer_shop_3:"Subscriptions", footer_shop_4:"Gift cards",
+      footer_discover_h4:"Discover", footer_discover_1:"Our story", footer_discover_2:"Coffee guide", footer_discover_3:"Brewing guide", footer_discover_4:"FAQ",
+      footer_follow_h4:"Follow", footer_contact_h4:"Contact",
+      footer_copyright:"© 2026 NOIRE. All rights reserved.", footer_privacy:"Privacy policy", footer_terms:"Terms & conditions", footer_shipping:"Shipping & returns",
+      cart_title:"Your cart", cart_empty:"Your cart is empty", cart_continue:"Continue shopping", cart_checkout:"Checkout", cart_subtotal:"Subtotal",
+      checkout_title:"Shipping details", checkout_name:"Full name", checkout_address:"Address", checkout_city:"City", checkout_postal:"Postal code", checkout_country:"Country",
+      checkout_back:"Back to cart", checkout_place:"Place order", order_summary:"Order summary",
+      confirm_title:"Thank you!", confirm_text:"Your order is on its way. A confirmation has been sent to your email.", confirm_order:"Order"
+    },
+    uk: {
+      nav_taste:"Смак", nav_coffee:"Кава", nav_quiz:"Тест", nav_story:"Історія", nav_location:"Відвідати", nav_shopall:"Вся кава",
+      hero_tag:"Спешелті кава, обсмажена малими партіями", hero_h1:"Знайди свою<br>каву.",
+      hero_lede:"Кава, що відповідає твоєму смаку, настрою та щоденному ритуалу — ретельно обсмажена, свіжо запакована і легка у виборі.",
+      hero_cta1:"Знайти свою каву", hero_cta2:"Вся кава", scrollcue:"Гортай", hero_spot_label:"Зараз обсмажуємо",
+      taste_h2:"Який смак<br>у вашої ідеальної чашки?", taste_p:"Не обов'язково бути експертом з кави, щоб знайти чудову каву. Просто обирайте те, що любите.",
+      taste_intensity_label:"Інтенсивність",
+      taste1_title:"Насичена й шоколадна", taste1_notes:"Какао · Смажені горіхи", taste1_blurb:"Наше найтемніше, найзатишніше обсмаження — мов десерт у чашці.",
+      taste2_title:"Солодка й м'яка", taste2_notes:"Карамель · Мед",
+      taste3_title:"Фруктова й яскрава", taste3_notes:"Ягоди · Цитрус",
+      taste4_title:"Квіткова й легка", taste4_notes:"Жасмин · Бергамот",
+      catalog_eyebrow:"Виняткова якість", catalog_h2:"Малі партії.<br>Повний характер.",
+      catalog_p:"Наша місія — відбирати, обсмажувати й пакувати каву, за яку нам справді не соромно ставити своє ім'я.", catalog_cta:"Відкрити каталог",
+      p1_origin:"Ефіопія", p1_notes:"Фруктова · Квіткова · Яскрава", p1_desc:"Яскрава чашка з ягідною солодкістю, ніжними квітковими нотами та чистим фінішем.",
+      p1_roast:"Світле обсмаження", p1_brew:"Фільтр · V60",
+      p2_origin:"Колумбія", p2_notes:"Солодка · М'яка · Збалансована", p2_desc:"Карамельна солодкість, стигла фрукта і м'який шоколад роблять цю каву легким щоденним фаворитом.",
+      p2_roast:"Середнє обсмаження", p2_brew:"Еспресо · Мока-пот",
+      p3_origin:"Бразилія", p3_notes:"Насичена · Горіхова · Шоколадна", p3_desc:"Повнотіла й затишна, з нотами какао, смажених горіхів і коричневого цукру.",
+      p3_roast:"Середньо-темне обсмаження", p3_brew:"Еспресо · Французький прес",
+      brew_for_label:"Підходить для", add_to_cart:"Додати в кошик", per_250g:"/ 250г",
+      quiz_eyebrow:"Не впевнені, яку обрати?", quiz_h2:"Ваша ідеальна кава — за 30 секунд.",
+      quiz_p:"Забагато варіантів? Розкажіть, що вам подобається, і ми підберемо каву, яку ви покохаєте.",
+      quiz_cta:"Пройти тест на каву", quiz_li1:"Без складних кавових термінів", quiz_li2:"Без вгадування", quiz_li3:"Лише ваш смак",
+      why_h2:"Добра кава має<br>бути простою.", why_p:"Ми віримо, що вибір кави не повинен вимагати словника. Тому зосереджуємось на трьох речах.",
+      value1_title:"Свіжість", value1_desc:"Обсмажена малими партіями і запакована свіжою, щоб зберегти характер кожної кави.",
+      value2_title:"Чесність", value2_desc:"Чітка інформація про походження, обсмаження, смак і заварювання — щоб ви точно знали, що купуєте.",
+      value3_title:"Особистість", value3_desc:"Кава — це особисте. Ваша ідеальна чашка залежить від того, що любите ви, а не від чиєїсь поради.",
+      fresh_h2:"Свіжообсмажена.<br>Створена для насолоди.", fresh_p:"Кожна партія обсмажується з турботою і пакується одразу після обсмаження — від нашої обсмажувальні до вашої кухні.",
+      fresh_roasted_label:"Обсмажено", fresh_packed_label:"Запаковано", fresh_roasted_date:"18 вер 2026", fresh_packed_date:"19 вер 2026",
+      flavor_h2:"У кави є<br>своя мова.", flavor_p:"Але знати її всю не обов'язково — ми перекладаємо кожну каву на прості смаки, які ви впізнаєте.",
+      flavor1_title:"Солодкий", flavor1_desc:"Карамель · Мед · Коричневий цукор",
+      flavor2_title:"Фруктовий", flavor2_desc:"Ягоди · Цитрус · Персик",
+      flavor3_title:"Насичений", flavor3_desc:"Шоколад · Какао · Горіхи",
+      flavor4_title:"Яскравий", flavor4_desc:"Цитрус · Квіти · Чайний",
+      story_h2:"Кава без<br>ускладнень.",
+      story_p1:"Ми створили NOIRE з простою ідеєю: чудова кава не повинна лякати.",
+      story_p2:"За кожним пакетом стоїть унікальне походження, ретельний процес обсмаження і люди, яким справді небайдуже те, що опиняється у вашій чашці. Наше завдання — зробити цей досвід простішим для вас.",
+      story_cta:"Дізнатися нашу історію",
+      source_h2:"Від походження<br>до вашої чашки.", source_p:"Ми працюємо з ретельно відібраною кавою й обсмажуємо кожну так, щоб підкреслити її природний характер.",
+      step1_title:"Відбір", step1_desc:"Ми обираємо каву за якістю, характером і виразним смаком.",
+      step2_title:"Обсмаження", step2_desc:"Кожна кава обсмажується за власним профілем.",
+      step3_title:"Пакування", step3_desc:"Кава пакується свіжою, щоб зберегти смак і аромат.",
+      step4_title:"Насолода", step4_desc:"Ви завариваєте її по-своєму і робите частиною щоденного ритуалу.",
+      reviews_h2:"Ваша нова улюблена<br>кава?",
+      review1_quote:"Нарешті знайшла каву, яка справді на смак така, як я очікувала. Опис смаку дуже допоміг з вибором.", review1_who:"Анна М.",
+      review2_quote:"Зазвичай я не знаю, яку каву купити. Тест підібрав саме те, що мені до смаку.", review2_who:"Марк Т.",
+      review3_quote:"Свіжа, м'яка і справді смачна. Я вже замовила ще одну пачку.", review3_who:"Софія Р.",
+      location_eyebrow:"Заходьте в гості", location_h2:"Завітайте до<br>нашої обсмажувальні",
+      location_text:"Заходьте на чашку кави, подивіться на обсмажувач у роботі, або просто привітайтесь — ми завжди раді вас бачити.",
+      location_address_label:"Адреса", location_address_value:"12 Roastery Lane, Амстердам, Нідерланди",
+      location_hours_label:"Графік", location_hours_value:"Пн – Сб, 8:00 – 18:00", location_btn:"Наша локація",
+      sub_h2:"Ніколи не залишайтесь<br>без доброї кави.",
+      sub_p:"Ваша улюблена кава — з доставкою тоді, коли потрібно. Оберіть каву, оберіть частоту — решту зробимо ми.",
+      sub_cta:"Оформити підписку", sub_meta1:"Пауза в будь-який час", sub_meta2:"Пропустити доставку", sub_meta3:"Змінити каву",
+      final_h2:"Готові знайти<br>свою каву?", final_p:"Ваша ідеальна чашка, можливо, ближче, ніж здається.", final_cta:"Знайти мою каву",
+      final_or_pre:"Або ", final_or_link:"перегляньте всю нашу каву", final_or_post:" і знайдіть свого нового фаворита.",
+      footer_tagline:"Спешелті кава просто. Свіжообсмажена, ретельно відібрана, створена для вашого щоденного ритуалу.",
+      footer_shop_h4:"Магазин", footer_shop_1:"Вся кава", footer_shop_2:"Хіти продажів", footer_shop_3:"Підписки", footer_shop_4:"Подарункові картки",
+      footer_discover_h4:"Дізнатися", footer_discover_1:"Наша історія", footer_discover_2:"Гід по каві", footer_discover_3:"Гід по завариванню", footer_discover_4:"Питання",
+      footer_follow_h4:"Стежити", footer_contact_h4:"Контакти",
+      footer_copyright:"© 2026 NOIRE. Усі права захищено.", footer_privacy:"Політика конфіденційності", footer_terms:"Умови використання", footer_shipping:"Доставка та повернення",
+      cart_title:"Ваш кошик", cart_empty:"Ваш кошик порожній", cart_continue:"Продовжити покупки", cart_checkout:"Оформити замовлення", cart_subtotal:"Проміжна сума",
+      checkout_title:"Дані доставки", checkout_name:"Повне ім'я", checkout_address:"Адреса", checkout_city:"Місто", checkout_postal:"Поштовий індекс", checkout_country:"Країна",
+      checkout_back:"Назад до кошика", checkout_place:"Підтвердити замовлення", order_summary:"Підсумок замовлення",
+      confirm_title:"Дякуємо!", confirm_text:"Ваше замовлення вже в дорозі. Підтвердження надіслано на вашу пошту.", confirm_order:"Замовлення"
+    },
+    ru: {
+      nav_taste:"Вкус", nav_coffee:"Кофе", nav_quiz:"Тест", nav_story:"История", nav_location:"Визит", nav_shopall:"Весь кофе",
+      hero_tag:"Спешелти кофе, обжаренный малыми партиями", hero_h1:"Найди свой<br>кофе.",
+      hero_lede:"Кофе, который подходит вашему вкусу, настроению и повседневному ритуалу — тщательно обжаренный, свежо упакованный и простой в выборе.",
+      hero_cta1:"Найти свой кофе", hero_cta2:"Весь кофе", scrollcue:"Листайте", hero_spot_label:"Сейчас обжариваем",
+      taste_h2:"Какой вкус<br>у вашей идеальной чашки?", taste_p:"Не обязательно быть экспертом по кофе, чтобы найти отличный кофе. Просто выбирайте то, что нравится.",
+      taste_intensity_label:"Интенсивность",
+      taste1_title:"Насыщенный и шоколадный", taste1_notes:"Какао · Жареные орехи", taste1_blurb:"Наша самая тёмная, самая уютная обжарка — как десерт в чашке.",
+      taste2_title:"Сладкий и мягкий", taste2_notes:"Карамель · Мёд",
+      taste3_title:"Фруктовый и яркий", taste3_notes:"Ягоды · Цитрус",
+      taste4_title:"Цветочный и лёгкий", taste4_notes:"Жасмин · Бергамот",
+      catalog_eyebrow:"Исключительное качество", catalog_h2:"Малые партии.<br>Полный характер.",
+      catalog_p:"Наша миссия — отбирать, обжаривать и упаковывать кофе, за который нам действительно не стыдно ставить своё имя.", catalog_cta:"Открыть каталог",
+      p1_origin:"Эфиопия", p1_notes:"Фруктовый · Цветочный · Яркий", p1_desc:"Яркая чашка с ягодной сладостью, нежными цветочными нотами и чистым финишем.",
+      p1_roast:"Светлая обжарка", p1_brew:"Фильтр · V60",
+      p2_origin:"Колумбия", p2_notes:"Сладкий · Мягкий · Сбалансированный", p2_desc:"Карамельная сладость, спелые фрукты и мягкий шоколад делают этот кофе лёгким повседневным фаворитом.",
+      p2_roast:"Средняя обжарка", p2_brew:"Эспрессо · Мока-пот",
+      p3_origin:"Бразилия", p3_notes:"Насыщенный · Ореховый · Шоколадный", p3_desc:"Плотный и уютный, с нотами какао, жареных орехов и коричневого сахара.",
+      p3_roast:"Средне-тёмная обжарка", p3_brew:"Эспрессо · Французский пресс",
+      brew_for_label:"Подходит для", add_to_cart:"Добавить в корзину", per_250g:"/ 250г",
+      quiz_eyebrow:"Не уверены, какой выбрать?", quiz_h2:"Ваш идеальный кофе — через 30 секунд.",
+      quiz_p:"Слишком много вариантов? Расскажите, что вам нравится, и мы подберём кофе, который вы полюбите.",
+      quiz_cta:"Пройти кофейный тест", quiz_li1:"Без сложных кофейных терминов", quiz_li2:"Без угадывания", quiz_li3:"Только ваш вкус",
+      why_h2:"Хороший кофе должен<br>быть простым.", why_p:"Мы верим, что выбор кофе не должен требовать словаря. Поэтому фокусируемся на трёх вещах.",
+      value1_title:"Свежесть", value1_desc:"Обжаривается малыми партиями и упаковывается свежим, чтобы сохранить характер каждого кофе.",
+      value2_title:"Честность", value2_desc:"Чёткая информация о происхождении, обжарке, вкусе и заваривании — чтобы вы точно знали, что покупаете.",
+      value3_title:"Индивидуальность", value3_desc:"Кофе — это личное. Ваша идеальная чашка зависит от того, что нравится вам, а не от чужого совета.",
+      fresh_h2:"Свежеобжаренный.<br>Создан для удовольствия.", fresh_p:"Каждая партия обжаривается с заботой и упаковывается сразу после обжарки — от нашей обжарочной до вашей кухни.",
+      fresh_roasted_label:"Обжарено", fresh_packed_label:"Упаковано", fresh_roasted_date:"18 сен 2026", fresh_packed_date:"19 сен 2026",
+      flavor_h2:"У кофе есть<br>свой язык.", flavor_p:"Но знать его весь не обязательно — мы переводим каждый кофе в простые вкусы, которые вы узнаете.",
+      flavor1_title:"Сладкий", flavor1_desc:"Карамель · Мёд · Коричневый сахар",
+      flavor2_title:"Фруктовый", flavor2_desc:"Ягоды · Цитрус · Персик",
+      flavor3_title:"Насыщенный", flavor3_desc:"Шоколад · Какао · Орехи",
+      flavor4_title:"Яркий", flavor4_desc:"Цитрус · Цветы · Чайный",
+      story_h2:"Кофе без<br>сложностей.",
+      story_p1:"Мы создали NOIRE с простой идеей: отличный кофе не должен пугать.",
+      story_p2:"За каждым пакетом стоит уникальное происхождение, тщательный процесс обжарки и люди, которым действительно небезразлично то, что оказывается в вашей чашке. Наша задача — сделать этот опыт проще для вас.",
+      story_cta:"Узнать нашу историю",
+      source_h2:"От происхождения<br>до вашей чашки.", source_p:"Мы работаем с тщательно отобранным кофе и обжариваем каждый так, чтобы подчеркнуть его природный характер.",
+      step1_title:"Отбор", step1_desc:"Мы выбираем кофе по качеству, характеру и выразительному вкусу.",
+      step2_title:"Обжарка", step2_desc:"Каждый кофе обжаривается по своему профилю.",
+      step3_title:"Упаковка", step3_desc:"Кофе упаковывается свежим, чтобы сохранить вкус и аромат.",
+      step4_title:"Наслаждение", step4_desc:"Вы завариваете его по-своему и делаете частью повседневного ритуала.",
+      reviews_h2:"Ваш новый любимый<br>кофе?",
+      review1_quote:"Наконец нашла кофе, который действительно на вкус такой, как я ожидала. Описание вкуса очень помогло с выбором.", review1_who:"Анна М.",
+      review2_quote:"Обычно я не знаю, какой кофе купить. Тест подобрал именно то, что мне по вкусу.", review2_who:"Марк Т.",
+      review3_quote:"Свежий, мягкий и действительно вкусный. Я уже заказала ещё одну пачку.", review3_who:"София Р.",
+      location_eyebrow:"Заходите в гости", location_h2:"Загляните в<br>нашу обжарочную",
+      location_text:"Заходите на чашку кофе, посмотрите на обжарщика за работой или просто поздоровайтесь — мы всегда рады вас видеть.",
+      location_address_label:"Адрес", location_address_value:"12 Roastery Lane, Амстердам, Нидерланды",
+      location_hours_label:"График", location_hours_value:"Пн – Сб, 8:00 – 18:00", location_btn:"Наше расположение",
+      sub_h2:"Никогда не оставайтесь<br>без хорошего кофе.",
+      sub_p:"Ваш любимый кофе — с доставкой тогда, когда нужно. Выберите кофе, выберите частоту — остальное сделаем мы.",
+      sub_cta:"Оформить подписку", sub_meta1:"Пауза в любое время", sub_meta2:"Пропустить доставку", sub_meta3:"Изменить кофе",
+      final_h2:"Готовы найти<br>свой кофе?", final_p:"Ваша идеальная чашка, возможно, ближе, чем кажется.", final_cta:"Найти мой кофе",
+      final_or_pre:"Или ", final_or_link:"посмотрите весь наш кофе", final_or_post:" и найдите своего нового фаворита.",
+      footer_tagline:"Спешелти кофе просто. Свежеобжаренный, тщательно отобранный, создан для вашего повседневного ритуала.",
+      footer_shop_h4:"Магазин", footer_shop_1:"Весь кофе", footer_shop_2:"Хиты продаж", footer_shop_3:"Подписки", footer_shop_4:"Подарочные карты",
+      footer_discover_h4:"Узнать", footer_discover_1:"Наша история", footer_discover_2:"Гид по кофе", footer_discover_3:"Гид по завариванию", footer_discover_4:"Вопросы",
+      footer_follow_h4:"Подписаться", footer_contact_h4:"Контакты",
+      footer_copyright:"© 2026 NOIRE. Все права защищены.", footer_privacy:"Политика конфиденциальности", footer_terms:"Условия использования", footer_shipping:"Доставка и возврат",
+      cart_title:"Ваша корзина", cart_empty:"Ваша корзина пуста", cart_continue:"Продолжить покупки", cart_checkout:"Оформить заказ", cart_subtotal:"Промежуточная сумма",
+      checkout_title:"Данные доставки", checkout_name:"Полное имя", checkout_address:"Адрес", checkout_city:"Город", checkout_postal:"Почтовый индекс", checkout_country:"Страна",
+      checkout_back:"Назад в корзину", checkout_place:"Подтвердить заказ", order_summary:"Итог заказа",
+      confirm_title:"Спасибо!", confirm_text:"Ваш заказ уже в пути. Подтверждение отправлено на вашу почту.", confirm_order:"Заказ"
+    }
+  };
+
+  var currentLang = 'en';
+
+  function applyLang(lang){
+    if(!DICT[lang]) lang = 'en';
+    currentLang = lang;
+    var dict = DICT[lang];
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var key = el.getAttribute('data-i18n');
+      if(dict[key] !== undefined) el.textContent = dict[key];
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(function(el){
+      var key = el.getAttribute('data-i18n-html');
+      if(dict[key] !== undefined) el.innerHTML = dict[key];
+    });
+    document.documentElement.setAttribute('lang', lang);
+    document.querySelectorAll('.langswitch button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-lang') === lang);
+    });
+    try{ localStorage.setItem('noire_lang', lang); }catch(e){}
+    renderCart();
+  }
+
+  document.querySelectorAll('.langswitch button').forEach(function(b){
+    b.addEventListener('click', function(){ applyLang(b.getAttribute('data-lang')); });
+  });
+
+  /* ================= CART ================= */
+  var cart = [];
+  try{ cart = JSON.parse(localStorage.getItem('noire_cart') || '[]'); }catch(e){ cart = []; }
+
+  function saveCart(){ try{ localStorage.setItem('noire_cart', JSON.stringify(cart)); }catch(e){} }
+
+  function addToCart(btn){
+    var id = btn.getAttribute('data-id');
+    var existing = cart.find(function(i){ return i.id === id; });
+    if(existing){ existing.qty += 1; }
+    else{
+      cart.push({
+        id: id,
+        name: btn.getAttribute('data-name'),
+        originKey: btn.getAttribute('data-origin-key'),
+        price: parseFloat(btn.getAttribute('data-price')),
+        img: btn.getAttribute('data-img'),
+        qty: 1
+      });
+    }
+    saveCart();
+    renderCart();
+    openCart();
+  }
+
+  document.querySelectorAll('.add-to-cart').forEach(function(btn){
+    btn.addEventListener('click', function(){ addToCart(btn); });
+  });
+
+  function changeQty(id, delta){
+    var item = cart.find(function(i){ return i.id === id; });
+    if(!item) return;
+    item.qty += delta;
+    if(item.qty <= 0){ cart = cart.filter(function(i){ return i.id !== id; }); }
+    saveCart();
+    renderCart();
+  }
+
+  function removeItem(id){
+    cart = cart.filter(function(i){ return i.id !== id; });
+    saveCart();
+    renderCart();
+  }
+
+  function subtotal(){
+    return cart.reduce(function(sum, i){ return sum + i.price * i.qty; }, 0);
+  }
+
+  function renderCart(){
+    var dict = DICT[currentLang];
+    var count = cart.reduce(function(s,i){ return s + i.qty; }, 0);
+    var badge = document.getElementById('cartBadge');
+    badge.textContent = count;
+    badge.classList.toggle('show', count > 0);
+
+    var itemsEl = document.getElementById('cartItems');
+    var footEl = document.getElementById('cartFoot');
+    if(cart.length === 0){
+      itemsEl.innerHTML = '<div class="cart-empty">' + dict.cart_empty + '</div>';
+      footEl.style.display = 'none';
+    } else {
+      footEl.style.display = 'block';
+      itemsEl.innerHTML = cart.map(function(item){
+        var origin = dict[item.originKey] || '';
+        return '' +
+          '<div class="cart-item">' +
+            '<img src="'+item.img+'" alt="'+item.name+'" onerror="window.__noirePhotoFallback(this)">' +
+            '<div>' +
+              '<div class="cart-item-name">'+item.name+'</div>' +
+              '<div class="cart-item-origin">'+origin+'</div>' +
+              '<div class="qty-stepper">' +
+                '<button type="button" onclick="window.__noireChangeQty(\''+item.id+'\',-1)">−</button>' +
+                '<span>'+item.qty+'</span>' +
+                '<button type="button" onclick="window.__noireChangeQty(\''+item.id+'\',1)">+</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="cart-item-right">' +
+              '<div class="cart-item-price">€'+(item.price*item.qty)+'</div>' +
+              '<button type="button" class="cart-item-remove" onclick="window.__noireRemoveItem(\''+item.id+'\')">×</button>' +
+            '</div>' +
+          '</div>';
+      }).join('');
+    }
+    document.getElementById('cartSubtotal').textContent = '€' + subtotal();
+    renderOrderSummary();
+  }
+
+  function renderOrderSummary(){
+    var dict = DICT[currentLang];
+    var el = document.getElementById('orderSummary');
+    if(!el) return;
+    var rows = cart.map(function(item){
+      return '<div class="osrow"><span>'+item.name+' × '+item.qty+'</span><span>€'+(item.price*item.qty)+'</span></div>';
+    }).join('');
+    el.innerHTML = rows + '<div class="osrow total"><span>'+dict.cart_subtotal+'</span><span>€'+subtotal()+'</span></div>';
+  }
+
+  window.__noireChangeQty = changeQty;
+  window.__noireRemoveItem = removeItem;
+
+  /* drawer + view state */
+  var overlay = document.getElementById('cartOverlay');
+  var drawer = document.getElementById('cartDrawer');
+  var viewCart = document.getElementById('viewCart');
+  var viewCheckout = document.getElementById('viewCheckout');
+  var viewConfirm = document.getElementById('viewConfirm');
+
+  function showView(view){
+    [viewCart, viewCheckout, viewConfirm].forEach(function(v){ v.classList.add('view-hidden'); });
+    view.classList.remove('view-hidden');
+  }
+
+  function openCart(){
+    overlay.classList.add('open');
+    drawer.classList.add('open');
+    drawer.setAttribute('aria-hidden','false');
+    showView(viewCart);
+  }
+  function closeCart(){
+    overlay.classList.remove('open');
+    drawer.classList.remove('open');
+    drawer.setAttribute('aria-hidden','true');
+  }
+
+  document.getElementById('cartOpenBtn').addEventListener('click', openCart);
+  document.getElementById('cartCloseBtn').addEventListener('click', closeCart);
+  document.getElementById('checkoutCloseBtn').addEventListener('click', closeCart);
+  document.getElementById('confirmCloseBtn').addEventListener('click', closeCart);
+  overlay.addEventListener('click', closeCart);
+  document.getElementById('cartContinueBtn').addEventListener('click', closeCart);
+
+  document.getElementById('cartCheckoutBtn').addEventListener('click', function(){
+    if(cart.length === 0) return;
+    renderOrderSummary();
+    showView(viewCheckout);
+  });
+  document.getElementById('backToCartBtn').addEventListener('click', function(){ showView(viewCart); });
+
+  document.getElementById('placeOrderBtn').addEventListener('click', function(){
+    var form = document.getElementById('checkoutForm');
+    if(!form.reportValidity()) return;
+    var orderId = '#NOIRE-' + Math.floor(100000 + Math.random()*900000);
+    document.getElementById('confirmOrderId').textContent = orderId;
+    cart = [];
+    saveCart();
+    renderCart();
+    showView(viewConfirm);
+  });
+  document.getElementById('confirmContinueBtn').addEventListener('click', closeCart);
+
+  /* ================= INIT ================= */
+  var savedLang = 'en';
+  try{ savedLang = localStorage.getItem('noire_lang') || 'en'; }catch(e){}
+  applyLang(savedLang);
+})();
+</script>
+
+</body>
+</html>
