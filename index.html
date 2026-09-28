@@ -932,40 +932,50 @@
     </div>
     <div class="cart-body">
       <div class="order-summary" id="orderSummary"></div>
-      <form class="checkout-form" id="checkoutForm">
+      <form class="checkout-form" id="checkoutForm" action="https://s8.apix-drive.com/web-hooks/12051/fymumocx" method="POST" target="submit-frame">
         <div>
           <label data-i18n="checkout_name">Full name</label>
-          <input type="text" required>
+          <input type="text" name="full_name" required>
         </div>
         <div>
           <label>Email</label>
-          <input type="email" required>
+          <input type="email" name="email" required>
         </div>
         <div>
           <label data-i18n="checkout_address">Address</label>
-          <input type="text" required>
+          <input type="text" name="address" required>
         </div>
         <div class="checkout-row2">
           <div>
             <label data-i18n="checkout_city">City</label>
-            <input type="text" required>
+            <input type="text" name="city" required>
           </div>
           <div>
             <label data-i18n="checkout_postal">Postal code</label>
-            <input type="text" required>
+            <input type="text" name="postal_code" required>
           </div>
         </div>
         <div>
           <label data-i18n="checkout_country">Country</label>
-          <input type="text" required>
+          <input type="text" name="country" required>
         </div>
+        <!-- filled in by JS right before submit — not sent through fetch, just
+             extra fields riding along with the plain form POST -->
+        <input type="hidden" name="order_id">
+        <input type="hidden" name="items">
+        <input type="hidden" name="total">
+        <input type="hidden" name="source" value="NOIRE website">
       </form>
     </div>
     <div class="cart-foot">
-      <button class="btn primary btn-pill" id="placeOrderBtn" data-i18n="checkout_place">Place order</button>
-      <button class="cart-continue-link" id="backToCartBtn" data-i18n="checkout_back">Back to cart</button>
+      <button class="btn primary btn-pill" id="placeOrderBtn" type="submit" form="checkoutForm" data-i18n="checkout_place">Place order</button>
+      <button class="cart-continue-link" id="backToCartBtn" type="button" data-i18n="checkout_back">Back to cart</button>
     </div>
   </div>
+  <!-- the form posts here (method="POST" target="submit-frame") instead of via fetch,
+       so the webhook receives a plain form submission with no CORS preflight at all,
+       and the page never navigates away or reloads -->
+  <iframe name="submit-frame" style="display:none"></iframe>
 
   <!-- view: confirmation -->
   <div id="viewConfirm" class="view-hidden">
@@ -1059,7 +1069,7 @@
       cart_title:"Your cart", cart_empty:"Your cart is empty", cart_continue:"Continue shopping", cart_checkout:"Checkout", cart_subtotal:"Subtotal",
       checkout_title:"Shipping details", checkout_name:"Full name", checkout_address:"Address", checkout_city:"City", checkout_postal:"Postal code", checkout_country:"Country",
       checkout_back:"Back to cart", checkout_place:"Place order", order_summary:"Order summary",
-      confirm_title:"Thank you!", confirm_text:"Your order is on its way. A confirmation has been sent to your email.", confirm_order:"Order"
+      confirm_title:"Thank you!", confirm_text:"Your order is on its way. We will get back to you within 24 hours.", confirm_order:"Order"
     },
     uk: {
       nav_taste:"Смак", nav_coffee:"Кава", nav_quiz:"Тест", nav_story:"Історія", nav_location:"Відвідати", nav_shopall:"Вся кава",
@@ -1125,7 +1135,7 @@
       cart_title:"Ваш кошик", cart_empty:"Ваш кошик порожній", cart_continue:"Продовжити покупки", cart_checkout:"Оформити замовлення", cart_subtotal:"Проміжна сума",
       checkout_title:"Дані доставки", checkout_name:"Повне ім'я", checkout_address:"Адреса", checkout_city:"Місто", checkout_postal:"Поштовий індекс", checkout_country:"Країна",
       checkout_back:"Назад до кошика", checkout_place:"Підтвердити замовлення", order_summary:"Підсумок замовлення",
-      confirm_title:"Дякуємо!", confirm_text:"Ваше замовлення вже в дорозі. Підтвердження надіслано на вашу пошту.", confirm_order:"Замовлення"
+      confirm_title:"Дякуємо!", confirm_text:"Ваше замовлення вже в дорозі. Ми зв'яжемось з вами протягом 24 годин.", confirm_order:"Замовлення"
     },
     ru: {
       nav_taste:"Вкус", nav_coffee:"Кофе", nav_quiz:"Тест", nav_story:"История", nav_location:"Визит", nav_shopall:"Весь кофе",
@@ -1191,7 +1201,7 @@
       cart_title:"Ваша корзина", cart_empty:"Ваша корзина пуста", cart_continue:"Продолжить покупки", cart_checkout:"Оформить заказ", cart_subtotal:"Промежуточная сумма",
       checkout_title:"Данные доставки", checkout_name:"Полное имя", checkout_address:"Адрес", checkout_city:"Город", checkout_postal:"Почтовый индекс", checkout_country:"Страна",
       checkout_back:"Назад в корзину", checkout_place:"Подтвердить заказ", order_summary:"Итог заказа",
-      confirm_title:"Спасибо!", confirm_text:"Ваш заказ уже в пути. Подтверждение отправлено на вашу почту.", confirm_order:"Заказ"
+      confirm_title:"Спасибо!", confirm_text:"Ваш заказ уже в пути. Мы свяжемся с вами в течение 24 часов.", confirm_order:"Заказ"
     }
   };
 
@@ -1359,10 +1369,24 @@
   });
   document.getElementById('backToCartBtn').addEventListener('click', function(){ showView(viewCart); });
 
-  document.getElementById('placeOrderBtn').addEventListener('click', function(){
-    var form = document.getElementById('checkoutForm');
-    if(!form.reportValidity()) return;
+  // The order form posts directly to the webhook via action="" / method="POST"
+  // / target="submit-frame" (a plain HTML form submit, not fetch) so the
+  // browser never makes a CORS preflight request — a hidden same-page iframe
+  // catches the response so the page itself never navigates or reloads.
+  // This listener just fills in a few hidden fields right before the browser
+  // submits, and runs our own UI (clear cart, show the confirmation screen)
+  // in parallel — it never calls preventDefault, so the real submission
+  // always goes through even if something here throws.
+  document.getElementById('checkoutForm').addEventListener('submit', function(e){
+    var form = e.target;
     var orderId = '#NOIRE-' + Math.floor(100000 + Math.random()*900000);
+    var itemsSummary = cart.map(function(i){
+      return i.name + ' x' + i.qty + ' (€' + (i.price * i.qty) + ')';
+    }).join('; ');
+    form.order_id.value = orderId;
+    form.items.value = itemsSummary;
+    form.total.value = '€' + subtotal();
+
     document.getElementById('confirmOrderId').textContent = orderId;
     cart = [];
     saveCart();
