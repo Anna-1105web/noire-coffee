@@ -25,11 +25,42 @@
     img.src = exts[tried - 1] ? (base + '.' + exts[tried - 1]) : base;
   };
 </script>
-<title>NOIRE — Specialty Coffee</title>
+<title>NOIRE — Specialty Coffee, Freshly Roasted</title>
+<meta name="description" content="NOIRE roasts specialty coffee in small batches. Take our 30-second taste quiz, shop freshly roasted beans and subscribe for coffee delivered on your schedule.">
+
+<!-- ============ Open Graph / social preview ============
+     Pointed at the live domain: https://noire-coffee.vercel.app -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NOIRE">
+<meta property="og:title" content="NOIRE — Specialty Coffee, Freshly Roasted">
+<meta property="og:description" content="Specialty coffee roasted in small batches. Take our taste quiz and find your perfect cup.">
+<meta property="og:url" content="https://noire-coffee.vercel.app/">
+<meta property="og:image" content="https://noire-coffee.vercel.app/pexels-photo-31228818.avif">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="NOIRE — Specialty Coffee, Freshly Roasted">
+<meta name="twitter:description" content="Specialty coffee roasted in small batches. Take our taste quiz and find your perfect cup.">
+<meta name="twitter:image" content="https://noire-coffee.vercel.app/pexels-photo-31228818.avif">
+<link rel="canonical" href="https://noire-coffee.vercel.app/">
+
+<!-- Real favicon.ico file (16/32/48px, multi-size) as the primary icon — some
+     browsers (notably Safari) don't reliably show an inline SVG data-URI
+     favicon, and browsers cache favicons very aggressively, which is the
+     usual cause of a favicon "disappearing" after a redeploy. Upload the
+     favicon.ico file to the SAME folder as index.html on GitHub/Vercel. -->
+<link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F1F1F'/%3E%3Ctext x='32' y='45' font-family='Arial, Helvetica, sans-serif' font-size='36' font-weight='900' fill='%23FFFDF8' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F1F1F'/%3E%3Ctext x='32' y='45' font-family='Arial, Helvetica, sans-serif' font-size='36' font-weight='900' fill='%23FFFDF8' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#1F1F1F">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
+<!-- Fonts loaded non-render-blocking: the stylesheet is fetched with low
+     priority via rel="preload", then swapped to rel="stylesheet" once it
+     arrives (this is what PageSpeed's "eliminate render-blocking resources"
+     recommendation asks for). <noscript> covers browsers with JS disabled. -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,wght@1,400;1,500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,wght@1,400;1,500&display=swap" rel="stylesheet"></noscript>
 <style>
 
   :root{
@@ -534,7 +565,7 @@
   <!-- HERO (untouched) -->
   <section class="hero">
     <div class="hero-media">
-      <img src="pexels-photo-31228818.avif" alt="Dark roasted coffee beans, close texture" onerror="window.__noirePhotoFallback(this)">
+      <img src="pexels-photo-31228818.avif" alt="Dark roasted coffee beans, close texture" fetchpriority="high" loading="eager" decoding="async" onerror="window.__noirePhotoFallback(this)">
     </div>
     <div class="hero-scrim"></div>
     <div class="grain"></div>
@@ -567,7 +598,7 @@
       </div>
       <div class="taste-grid">
         <a class="taste-card" href="#coffee">
-          <img src="pexels-photo-19886786.avif" alt="Dark roasted coffee beans" onerror="window.__noirePhotoFallback(this)">
+          <img src="pexels-photo-19886786.avif" alt="Dark roasted coffee beans" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)">
           <div class="taste-overlay">
             <div class="taste-swatch" style="background:var(--cocoa);"></div>
             <h3 data-i18n="taste1_title">Rich &amp; chocolatey</h3>
@@ -580,7 +611,7 @@
           </div>
         </a>
         <a class="taste-card" href="#coffee">
-          <img src="pexels-photo-7859827.avif" alt="Warm espresso with latte art" onerror="window.__noirePhotoFallback(this)">
+          <img src="pexels-photo-7859827.avif" alt="Warm espresso with latte art" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)">
           <div class="taste-overlay">
             <div class="taste-swatch" style="background:var(--caramel);"></div>
             <h3 data-i18n="taste2_title">Sweet &amp; smooth</h3>
@@ -592,7 +623,7 @@
           </div>
         </a>
         <a class="taste-card" href="#coffee">
-          <img src="pexels-photo-7125542.avif" alt="Ripe red coffee cherry on the farm" onerror="window.__noirePhotoFallback(this)">
+          <img src="pexels-photo-7125542.avif" alt="Ripe red coffee cherry on the farm" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)">
           <div class="taste-overlay">
             <div class="taste-swatch" style="background:var(--rose);"></div>
             <h3 data-i18n="taste3_title">Fruity &amp; bright</h3>
@@ -604,7 +635,7 @@
           </div>
         </a>
         <a class="taste-card" href="#coffee">
-          <img src="pexels-photo-7658094.avif" alt="Pour-over coffee brewing, gooseneck kettle" onerror="window.__noirePhotoFallback(this)">
+          <img src="pexels-photo-7658094.avif" alt="Pour-over coffee brewing, gooseneck kettle" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)">
           <div class="taste-overlay">
             <div class="taste-swatch" style="background:var(--lavender);"></div>
             <h3 data-i18n="taste4_title">Floral &amp; light</h3>
@@ -630,13 +661,13 @@
           <a href="#productlist" class="btn primary btn-pill" data-i18n="catalog_cta">Open the catalog</a>
         </div>
         <div class="catalog-photo">
-          <img src="pexels-photo-4815954.avif" alt="Coffee beans, close texture" onerror="window.__noirePhotoFallback(this)">
+          <img src="pexels-photo-4815954.avif" alt="Coffee beans, close texture" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)">
         </div>
       </div>
 
       <div class="product-list" id="productlist">
         <div class="product">
-          <div class="product-photo"><img src="pexels-photo-4815954.avif" alt="Ripe coffee cherry, Ethiopia plantation" onerror="window.__noirePhotoFallback(this)"></div>
+          <div class="product-photo"><img src="pexels-photo-4815954.avif" alt="Ripe coffee cherry, Ethiopia plantation" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div>
           <div class="product-info">
             <div class="origin-row"><span class="dot" style="background:var(--rose);"></span><span class="origin" data-i18n="p1_origin">Ethiopia</span></div>
             <h3 translate="no">Berry Glow</h3>
@@ -657,7 +688,7 @@
         </div>
 
         <div class="product">
-          <div class="product-photo"><img src="pexels-photo-7125425.avif" alt="Cup of coffee, Colombia" onerror="window.__noirePhotoFallback(this)"></div>
+          <div class="product-photo"><img src="pexels-photo-7125425.avif" alt="Cup of coffee, Colombia" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div>
           <div class="product-info">
             <div class="origin-row"><span class="dot" style="background:var(--caramel);"></span><span class="origin" data-i18n="p2_origin">Colombia</span></div>
             <h3 translate="no">Golden Hour</h3>
@@ -678,7 +709,7 @@
         </div>
 
         <div class="product">
-          <div class="product-photo"><img src="pexels-photo-18394807.avif" alt="Dark roasted coffee beans, Brazil" onerror="window.__noirePhotoFallback(this)"></div>
+          <div class="product-photo"><img src="pexels-photo-18394807.avif" alt="Dark roasted coffee beans, Brazil" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div>
           <div class="product-info">
             <div class="origin-row"><span class="dot" style="background:var(--cocoa);"></span><span class="origin" data-i18n="p3_origin">Brazil</span></div>
             <h3 translate="no">After Dark</h3>
@@ -716,7 +747,7 @@
             <li data-i18n="quiz_li3">Just your taste</li>
           </ul>
         </div>
-        <div class="quiz-photo"><img src="pexels-photo-8937260.avif" alt="Coffee brewing in a filter, close up" onerror="window.__noirePhotoFallback(this)"></div>
+        <div class="quiz-photo"><img src="pexels-photo-8937260.avif" alt="Coffee brewing in a filter, close up" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div>
       </div>
     </section>
   </div>
@@ -730,15 +761,15 @@
       </div>
       <div class="values">
         <div class="value">
-          <div class="value-photo"><img src="pexels-photo-16139709.avif" alt="Coffee roasting machine, close up" onerror="window.__noirePhotoFallback(this)"></div>
+          <div class="value-photo"><img src="pexels-photo-16139709.avif" alt="Coffee roasting machine, close up" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div>
           <div class="value-copy"><h3 data-i18n="value1_title">Fresh</h3><p data-i18n="value1_desc">Roasted in small batches and packed fresh to preserve the character of every coffee.</p></div>
         </div>
         <div class="value">
-          <div class="value-photo"><img src="pexels-photo-36702829.avif" alt="Barista brewing coffee with precision" onerror="window.__noirePhotoFallback(this)"></div>
+          <div class="value-photo"><img src="pexels-photo-36702829.avif" alt="Barista brewing coffee with precision" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div>
           <div class="value-copy"><h3 data-i18n="value2_title">Honest</h3><p data-i18n="value2_desc">Clear information about origin, roast, flavor and brewing — so you know exactly what you're buying.</p></div>
         </div>
         <div class="value">
-          <div class="value-photo"><img src="pexels-photo-32480142.avif" alt="Coffee cup on a wooden table in a cafe" onerror="window.__noirePhotoFallback(this)"></div>
+          <div class="value-photo"><img src="pexels-photo-32480142.avif" alt="Coffee cup on a wooden table in a cafe" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div>
           <div class="value-copy"><h3 data-i18n="value3_title">Personal</h3><p data-i18n="value3_desc">Coffee is personal. Your perfect cup depends on what you love, not what someone else tells you to drink.</p></div>
         </div>
       </div>
@@ -757,7 +788,7 @@
             <div><div class="l" data-i18n="fresh_packed_label">Packed</div><div class="d" data-i18n="fresh_packed_date">19 Sep 2026</div></div>
           </div>
         </div>
-        <div class="fresh-photo"><img src="pexels-photo-8469500.avif" alt="Roasting fresh coffee beans, artisanal process" onerror="window.__noirePhotoFallback(this)"></div>
+        <div class="fresh-photo"><img src="pexels-photo-8469500.avif" alt="Roasting fresh coffee beans, artisanal process" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div>
       </div>
     </section>
   </div>
@@ -783,7 +814,7 @@
     <section class="section-pad">
       <div class="num-mark" style="top:-20px; left:-10px;">08</div>
       <div class="story">
-        <div class="story-photo"><img src="pexels-photo-31671730.avif" alt="Cozy coffee shop interior" onerror="window.__noirePhotoFallback(this)"></div>
+        <div class="story-photo"><img src="pexels-photo-31671730.avif" alt="Cozy coffee shop interior" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div>
         <div class="story-copy">
           <h2 class="display" data-i18n-html="story_h2">Coffee, without<br>the complication.</h2>
           <p data-i18n="story_p1">We started NOIRE with a simple idea: great coffee shouldn't feel intimidating.</p>
@@ -802,17 +833,17 @@
         <p data-i18n="source_p">We work with carefully selected coffees and roast each one to highlight its natural character.</p>
       </div>
       <div class="steps">
-        <div class="step"><div class="step-photo"><span class="n">01</span><img src="pexels-photo-7125558.avif" alt="Farmer harvesting ripe coffee cherries" onerror="window.__noirePhotoFallback(this)"></div><div class="step-copy"><h3 data-i18n="step1_title">Source</h3><p data-i18n="step1_desc">We select coffees for their quality, character and distinctive flavor.</p></div></div>
-        <div class="step"><div class="step-photo"><span class="n">02</span><img src="pexels-photo-22718754.avif" alt="Coffee beans in a roasting machine" onerror="window.__noirePhotoFallback(this)"></div><div class="step-copy"><h3 data-i18n="step2_title">Roast</h3><p data-i18n="step2_desc">Each coffee is roasted according to its individual profile.</p></div></div>
-        <div class="step"><div class="step-photo"><span class="n">03</span><img src="pexels-photo-8912741.avif" alt="Roasted coffee beans, close texture" onerror="window.__noirePhotoFallback(this)"></div><div class="step-copy"><h3 data-i18n="step3_title">Pack</h3><p data-i18n="step3_desc">Coffee is packed fresh to help preserve its flavor and aroma.</p></div></div>
-        <div class="step"><div class="step-photo"><span class="n">04</span><img src="pexels-photo-19723763.avif" alt="Pouring brewed coffee into a glass" onerror="window.__noirePhotoFallback(this)"></div><div class="step-copy"><h3 data-i18n="step4_title">Enjoy</h3><p data-i18n="step4_desc">You brew it your way and make it part of your everyday ritual.</p></div></div>
+        <div class="step"><div class="step-photo"><span class="n">01</span><img src="pexels-photo-7125558.avif" alt="Farmer harvesting ripe coffee cherries" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div><div class="step-copy"><h3 data-i18n="step1_title">Source</h3><p data-i18n="step1_desc">We select coffees for their quality, character and distinctive flavor.</p></div></div>
+        <div class="step"><div class="step-photo"><span class="n">02</span><img src="pexels-photo-22718754.avif" alt="Coffee beans in a roasting machine" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div><div class="step-copy"><h3 data-i18n="step2_title">Roast</h3><p data-i18n="step2_desc">Each coffee is roasted according to its individual profile.</p></div></div>
+        <div class="step"><div class="step-photo"><span class="n">03</span><img src="pexels-photo-8912741.avif" alt="Roasted coffee beans, close texture" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div><div class="step-copy"><h3 data-i18n="step3_title">Pack</h3><p data-i18n="step3_desc">Coffee is packed fresh to help preserve its flavor and aroma.</p></div></div>
+        <div class="step"><div class="step-photo"><span class="n">04</span><img src="pexels-photo-19723763.avif" alt="Pouring brewed coffee into a glass" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div><div class="step-copy"><h3 data-i18n="step4_title">Enjoy</h3><p data-i18n="step4_desc">You brew it your way and make it part of your everyday ritual.</p></div></div>
       </div>
     </section>
   </div>
 
   <!-- REVIEWS -->
   <section class="reviews-section" id="reviews">
-    <div class="reviews-bg"><img src="pexels-photo-17744101.avif" alt="Coffee beans, background texture" onerror="window.__noirePhotoFallback(this)"></div>
+    <div class="reviews-bg"><img src="pexels-photo-17744101.avif" alt="Coffee beans, background texture" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div>
     <div class="wrap reviews-inner">
       <div class="section-pad" style="padding-bottom:120px;">
         <div class="section-head">
@@ -852,7 +883,7 @@
           </a>
         </div>
         <div class="location-photo">
-          <img src="pexels-photo-32480142.avif" alt="Cozy NOIRE roastery interior" onerror="window.__noirePhotoFallback(this)">
+          <img src="pexels-photo-32480142.avif" alt="Cozy NOIRE roastery interior" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)">
           <svg class="pin-mark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s-8-7.5-8-13.5A8 8 0 0 1 20 8.5C20 14.5 12 22 12 22z"/><circle cx="12" cy="8.5" r="3" fill="#18120C"/></svg>
         </div>
       </div>
@@ -863,7 +894,7 @@
   <div class="wrap">
     <section class="section-pad">
       <div class="sub">
-        <div class="sub-bg"><img src="pexels-photo-30925511.avif" alt="Elegant coffee setting" onerror="window.__noirePhotoFallback(this)"></div>
+        <div class="sub-bg"><img src="pexels-photo-30925511.avif" alt="Elegant coffee setting" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)"></div>
         <div class="sub-inner">
           <h2 class="display" data-i18n-html="sub_h2">Never run out<br>of good coffee.</h2>
           <p data-i18n="sub_p">Your favorite coffee, delivered when you need it. Choose your coffee, choose your frequency — we'll take care of the rest.</p>
@@ -1297,7 +1328,7 @@
         var origin = dict[item.originKey] || '';
         return '' +
           '<div class="cart-item">' +
-            '<img src="'+item.img+'" alt="'+item.name+'" onerror="window.__noirePhotoFallback(this)">' +
+            '<img src="'+item.img+'" alt="'+item.name+'" loading="lazy" decoding="async" onerror="window.__noirePhotoFallback(this)">' +
             '<div>' +
               '<div class="cart-item-name">'+item.name+'</div>' +
               '<div class="cart-item-origin">'+origin+'</div>' +
